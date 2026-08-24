@@ -6,9 +6,9 @@
    Pork — cinematic base
    ───────────────────────────────────────────────────────────── */
 :root {
-  --font-display: "Space Grotesk";
-  --font-sans: "Inter";
-  --font-mono: "JetBrains Mono";
+  --font-display: "Space Grotesk", "Inter", "Segoe UI", system-ui, -apple-system, "DejaVu Sans", Arial, sans-serif;
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, "DejaVu Sans", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "DejaVu Sans Mono", monospace;
   color-scheme: dark;
 }
 
