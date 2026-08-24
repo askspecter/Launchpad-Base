@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { WagmiProvider, http } from "wagmi";
 import { RainbowKitProvider, getDefaultConfig, darkTheme } from "@rainbow-me/rainbowkit";
 import {
+  coinbaseWallet,
   injectedWallet,
   metaMaskWallet,
   rainbowWallet,
@@ -13,15 +14,17 @@ import {
 import { robinhoodChain } from "@/lib/chain";
 import { WalletErrorBoundary } from "@/components/WalletErrorBoundary";
 
-// injectedWallet is dependency-free and never throws on mount (it only reads
-// window.ethereum), so it's always safe as the base. The MetaMask SDK / Rainbow
-// / WalletConnect connectors pull heavier SDKs that can throw while mounting on
-// some mobile browsers, so we only add them once a real WalletConnect projectId
-// is configured (free at cloud.reown.com).
+// Base wallets work with NO WalletConnect projectId:
+//  - injectedWallet: browser-extension wallets (desktop).
+//  - coinbaseWallet: Coinbase Smart Wallet, which connects in mobile Safari via
+//    a passkey popup (no app/extension needed) — this is what makes "Connect"
+//    actually do something on a phone.
+// MetaMask SDK / Rainbow / WalletConnect (QR + more mobile wallets) are added
+// only when a real projectId is set (free at cloud.reown.com).
 const wcProjectId = process.env.NEXT_PUBLIC_WC_PROJECT_ID;
 const wallets = wcProjectId
-  ? [{ groupName: "Popular", wallets: [injectedWallet, metaMaskWallet, rainbowWallet, walletConnectWallet] }]
-  : [{ groupName: "Popular", wallets: [injectedWallet] }];
+  ? [{ groupName: "Popular", wallets: [injectedWallet, coinbaseWallet, metaMaskWallet, rainbowWallet, walletConnectWallet] }]
+  : [{ groupName: "Popular", wallets: [injectedWallet, coinbaseWallet] }];
 
 const wagmiConfig = getDefaultConfig({
   appName: "Pork",
