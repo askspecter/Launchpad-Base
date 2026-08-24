@@ -1,24 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useWalletReady } from "@/app/providers";
 
 /**
  * Pork-styled trigger over RainbowKit's connect modal
  * (MetaMask · Browser Wallet · Rainbow · WalletConnect).
  *
- * RainbowKit's <ConnectButton> must not render during SSR/prerender: doing so
- * crashes Next's static export with "Cannot read properties of undefined
- * (reading 'uid')". We render a static placeholder on the server and mount the
- * real button only on the client, after hydration. wagmi core hooks elsewhere
- * still work server-side via WagmiProvider (ssr: true).
+ * Gated on useWalletReady(): the RainbowKit provider is client-only, so we show
+ * a static placeholder until it is mounted, then render the real button. Using
+ * the shared flag (not a local one) guarantees ConnectButton never renders
+ * before RainbowKitProvider exists.
  */
 export function WalletButton() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const ready = useWalletReady();
 
-  if (!mounted) {
-    // Same footprint as the connected/disconnected button, non-interactive.
+  if (!ready) {
     return (
       <button className="btn-brand !px-4 !py-2.5" aria-hidden disabled>
         Connect
@@ -28,12 +25,12 @@ export function WalletButton() {
 
   return (
     <ConnectButton.Custom>
-      {({ account, chain, openConnectModal, openAccountModal, openChainModal, mounted: rkMounted }) => {
-        const ready = rkMounted;
-        const connected = ready && account && chain;
+      {({ account, chain, openConnectModal, openAccountModal, openChainModal, mounted }) => {
+        const rkReady = mounted;
+        const connected = rkReady && account && chain;
 
         return (
-          <div {...(!ready && { "aria-hidden": true, style: { opacity: 0, pointerEvents: "none" } })}>
+          <div {...(!rkReady && { "aria-hidden": true, style: { opacity: 0, pointerEvents: "none" } })}>
             {!connected ? (
               <button className="btn-brand !px-4 !py-2.5" onClick={openConnectModal}>
                 Connect
