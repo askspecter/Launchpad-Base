@@ -84,6 +84,16 @@ export function WalletButton({ variant = "solid" }: { variant?: "inline" | "soli
 
   const metaMask = connectors[0];
   const generic = connectors[1] ?? connectors[0];
+  const walletConnect = connectors.find((c) => c.id === "walletConnect");
+
+  function connectWalletConnect() {
+    if (!walletConnect) return;
+    setOpen(false);
+    autoSwitched.current = false;
+    // WalletConnect negotiates an EVM-only session, so a multi-chain wallet
+    // connects on Robinhood — it can't offer Solana here.
+    connect({ connector: walletConnect, chainId: robinhoodChain.id });
+  }
 
   function pick(which: "metaMask" | "generic") {
     setOpen(false);
@@ -140,9 +150,22 @@ export function WalletButton({ variant = "solid" }: { variant?: "inline" | "soli
                 <span className="block text-[11px] font-normal text-zinc-400">Other EVM browser wallet</span>
               </span>
             </button>
+            {walletConnect && (
+              <button
+                type="button"
+                onClick={connectWalletConnect}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-zinc-800 transition hover:bg-black/[0.04]"
+              >
+                <span className="text-lg">🔗</span>
+                <span className="min-w-0">
+                  <span className="block">WalletConnect</span>
+                  <span className="block text-[11px] font-normal text-zinc-400">Best for Bitget — forces EVM, no Solana</span>
+                </span>
+              </button>
+            )}
             <p className="px-3 pb-2 pt-1.5 text-[11px] leading-snug text-zinc-400">
-              Connects on the EVM network and switches you to {robinhoodChain.name}. If your wallet
-              opens on Solana, pick Ethereum/EVM first.
+              Connects on the EVM network and switches you to {robinhoodChain.name}. If a wallet opens
+              on Solana, use WalletConnect instead.
             </p>
           </div>
         )}

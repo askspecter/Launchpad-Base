@@ -3,8 +3,16 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { WagmiProvider, createConfig, http, createStorage, noopStorage } from "wagmi";
-import { injected } from "wagmi/connectors";
+import { injected, walletConnect } from "wagmi/connectors";
 import { robinhoodChain } from "@/lib/chain";
+
+// WalletConnect (added only when a project id is configured) negotiates an
+// EVM-only session (eip155:<chainId>). That is the one path that forces a
+// multi-chain wallet like Bitget onto the EVM/Robinhood network — it cannot
+// offer Solana for an eip155 session — and its provider only initialises on
+// connect(), not on mount, so it never white-screens the app the way
+// RainbowKit's eager stack did. Free project id at cloud.reown.com.
+export const WC_PROJECT_ID = process.env.NEXT_PUBLIC_WC_PROJECT_ID || "";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Wallet connect — deliberately RainbowKit-FREE.
@@ -84,6 +92,21 @@ const wagmiConfig = createConfig({
         provider: (win) => evmProvider(win) as never,
       }),
     }),
+    // [2] WalletConnect — EVM-only session, forces Robinhood (not Solana).
+    ...(WC_PROJECT_ID
+      ? [
+          walletConnect({
+            projectId: WC_PROJECT_ID,
+            showQrModal: true,
+            metadata: {
+              name: "Pork",
+              description: "Cinematic AI launchpad on Robinhood Chain",
+              url: "https://pork.works",
+              icons: ["https://pork.works/pork-logo.png"],
+            },
+          }),
+        ]
+      : []),
   ],
   multiInjectedProviderDiscovery: false,
   ssr: true,
