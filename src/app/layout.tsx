@@ -27,6 +27,13 @@ export const viewport: Viewport = {
   themeColor: "#fff3fa",
 };
 
+// Render at request time, not static export. RainbowKit's config throws
+// "reading 'uid'" during Next's static prerender step — and Vercel restores a
+// build cache that can reintroduce old chunks — so skip prerender entirely.
+// This is a build/server-render concern only; the mobile crash was stale client
+// storage, handled by the reset script below.
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
