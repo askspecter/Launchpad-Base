@@ -7,9 +7,13 @@ import { useState } from "react";
  * fallback to a monogram badge if the image can't load. Stock marks come from
  * a public logo CDN; crypto from a coin icon CDN. No API key required.
  */
+// Crypto marks are served locally from /public so they always render (no
+// dependency on a third-party icon CDN that can disappear). USDG is Global
+// Dollar; per request it shows the USDC dollar mark.
 const CRYPTO: Record<string, string> = {
-  ETH: "https://assets.coincap.io/assets/icons/eth@2x.png",
-  USDG: "https://assets.coincap.io/assets/icons/usdc@2x.png", // stand-in dollar mark
+  ETH: "/eth.svg",
+  USDG: "/usdc.svg",
+  USDC: "/usdc.svg",
 };
 
 function logoUrl(symbol: string): string {
