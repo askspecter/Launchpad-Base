@@ -15,6 +15,7 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
   body {
     @apply text-zinc-800 antialiased;
@@ -22,6 +23,8 @@
     background-color: #fff3fa;
     color: #2a0f1e;
     min-height: 100dvh;
+    width: 100%;
+    max-width: 100%;
     overflow-x: hidden;
   }
   ::selection {

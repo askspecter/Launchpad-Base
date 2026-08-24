@@ -19,7 +19,7 @@ export default function HomePage() {
           AI launchpad on {SITE.chain}
         </span>
 
-        <h1 className="mt-6 animate-fade-up font-display text-5xl font-bold leading-[1.05] tracking-tight text-zinc-900 sm:text-7xl">
+        <h1 className="mt-6 animate-fade-up font-display text-4xl font-bold leading-[1.05] tracking-tight text-zinc-900 sm:text-6xl md:text-7xl">
           One line in.
           <br />
           <span className="grad-text">A token out.</span>
