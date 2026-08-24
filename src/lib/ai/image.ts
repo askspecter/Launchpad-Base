@@ -1,18 +1,15 @@
 import { generateFallbackLogo } from "./avatar";
 
 /**
- * Real AI image generation for token art.
- *
- * Two styles:
+ * AI token art through the **Bankr LLM Gateway** (same key/base as text
+ * generation — Bankr routes across many models). Two styles:
  *  - "icon"  → a clean, iconic token logo.
  *  - "photo" → a photorealistic, cinematic promo image.
  *
- * Provider is an OpenAI-compatible images endpoint set via IMAGE_API_URL +
- * IMAGE_API_KEY (e.g. an images/generations route). We accept several response
- * shapes ({ data:[{b64_json|url}] } or { image|url }). If no provider is
- * configured, the "icon" style falls back to a deterministic SVG so the studio
- * still works end-to-end; "photo" has no offline substitute and also falls
- * back to the SVG mark.
+ * Order of providers:
+ *  1. Bankr LLM Gateway (BANKR_API_KEY, OpenAI-compatible /v1/images/generations)
+ *  2. A generic OpenAI-compatible endpoint (IMAGE_API_URL + IMAGE_API_KEY), if set
+ *  3. Deterministic SVG fallback so the studio always works.
  */
 
 export type ImageStyle = "icon" | "photo";
@@ -39,41 +36,61 @@ export async function generateTokenImage(
   description: string,
   style: ImageStyle = "icon"
 ): Promise<string> {
-  const url = process.env.IMAGE_API_URL;
-  const key = process.env.IMAGE_API_KEY;
-  if (!url || !key) return generateFallbackLogo(ticker);
-
   const prompt = buildImagePrompt(style, ticker, description);
-  const model = process.env.IMAGE_MODEL || "gpt-image-1";
   const size = process.env.IMAGE_SIZE || (style === "photo" ? "1024x1024" : "512x512");
 
+  // 1) Bankr LLM Gateway (preferred — one key for text + image + more).
+  const bankrKey = process.env.BANKR_API_KEY;
+  if (bankrKey) {
+    const base = process.env.BANKR_BASE_URL || "https://llm.bankr.bot";
+    const model = process.env.BANKR_IMAGE_MODEL || process.env.IMAGE_MODEL || "gpt-image-1";
+    const img = await callImages(`${base}/v1/images/generations`, bankrKey, model, prompt, size);
+    if (img) return img;
+  }
+
+  // 2) Generic OpenAI-compatible image endpoint (optional override).
+  const url = process.env.IMAGE_API_URL;
+  const key = process.env.IMAGE_API_KEY;
+  if (url && key) {
+    const model = process.env.IMAGE_MODEL || "gpt-image-1";
+    const img = await callImages(url, key, model, prompt, size);
+    if (img) return img;
+  }
+
+  // 3) Fallback: deterministic SVG mark.
+  return generateFallbackLogo(ticker);
+}
+
+/** POST an OpenAI-compatible images request; tolerate several response shapes. */
+async function callImages(
+  endpoint: string,
+  key: string,
+  model: string,
+  prompt: string,
+  size: string
+): Promise<string | null> {
   try {
-    const res = await fetch(url, {
+    const res = await fetch(endpoint, {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        authorization: `Bearer ${key}`,
-        // Some gateways key off X-API-Key instead of Authorization.
+        // Bankr keys off X-API-Key; other gateways use Authorization. Send both.
         "x-api-key": key,
+        authorization: `Bearer ${key}`,
       },
       body: JSON.stringify({ model, prompt, size, n: 1, response_format: "b64_json" }),
+      signal: AbortSignal.timeout(45000),
     });
-    if (!res.ok) return generateFallbackLogo(ticker);
-
+    if (!res.ok) return null;
     const data = (await res.json()) as {
       data?: Array<{ b64_json?: string; url?: string }>;
       image?: string;
       url?: string;
     };
-
     const b64 = data.data?.[0]?.b64_json;
     if (b64) return `data:image/png;base64,${b64}`;
-    const hosted = data.data?.[0]?.url || data.url;
-    if (hosted) return hosted;
-    if (data.image) return data.image; // may already be a data URI
-
-    return generateFallbackLogo(ticker);
+    return data.data?.[0]?.url || data.url || data.image || null;
   } catch {
-    return generateFallbackLogo(ticker);
+    return null;
   }
 }
