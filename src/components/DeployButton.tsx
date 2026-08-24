@@ -17,7 +17,7 @@ import { robinhoodChain, explorerTx } from "@/lib/chain";
 export function DeployButton({ input, disabled }: { input: LaunchInput; disabled?: boolean }) {
   const { address, isConnected, chainId } = useAccount();
   const publicClient = usePublicClient();
-  const { switchChainAsync } = useSwitchChain();
+  const { switchChainAsync, isPending: switching } = useSwitchChain();
   const { writeContractAsync } = useWriteContract();
   const [status, setStatus] = useState<"idle" | "preparing" | "signing" | "sent" | "error">("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -107,6 +107,31 @@ export function DeployButton({ input, disabled }: { input: LaunchInput; disabled
           ✓ Launched — view on explorer
         </a>
         <a href="/feed" className="btn-ghost w-full">See it in the feed →</a>
+      </div>
+    );
+  }
+
+  // Connected but on the wrong network → a prominent "Switch to Robinhood"
+  // button (like Pons) instead of Deploy, so the network fix is one tap.
+  if (isConnected && chainId !== robinhoodChain.id) {
+    return (
+      <div className="space-y-2">
+        <button
+          className="btn-brand w-full"
+          disabled={switching}
+          onClick={async () => {
+            try {
+              await switchChainAsync({ chainId: robinhoodChain.id });
+            } catch {
+              /* user rejected or wallet still on another network */
+            }
+          }}
+        >
+          {switching ? "Switching…" : "Switch to Robinhood"}
+        </button>
+        <p className="text-xs text-zinc-500">
+          This app runs on {robinhoodChain.name} (an EVM chain, not Solana). Switch to deploy.
+        </p>
       </div>
     );
   }

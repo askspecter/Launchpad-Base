@@ -49,7 +49,7 @@ export function QuoteAssetSelect({
       </button>
 
       {open && (
-        <div className="thin-scroll absolute z-30 mt-2 max-h-72 w-full overflow-auto rounded-xl border border-ink-line bg-ink-800/95 p-1 shadow-card backdrop-blur-xl">
+        <div className="thin-scroll absolute z-30 mt-2 max-h-64 w-full overflow-y-auto rounded-xl border border-ink-line bg-white p-1 shadow-card">
           {assets.map((a) => {
             const active = a.asset.toLowerCase() === value.toLowerCase();
             return (
@@ -61,10 +61,10 @@ export function QuoteAssetSelect({
                   setOpen(false);
                 }}
                 className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition ${
-                  active ? "bg-rose/15 text-zinc-900" : "text-zinc-700 hover:bg-black/[0.05]"
+                  active ? "bg-pink/10 text-zinc-900" : "text-zinc-800 hover:bg-black/[0.04]"
                 }`}
               >
-                <AssetLogo symbol={a.symbol} size={24} />
+                <AssetLogo symbol={a.symbol} size={26} />
                 <span className="font-bold">{a.symbol}</span>
                 <span className="ml-auto truncate text-xs text-zinc-500">{a.name}</span>
               </button>
