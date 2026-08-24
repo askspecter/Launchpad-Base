@@ -13,13 +13,15 @@ import {
 import { robinhoodChain } from "@/lib/chain";
 import { WalletErrorBoundary } from "@/components/WalletErrorBoundary";
 
-// injected/MetaMask work everywhere without extra SDKs. WalletConnect + Rainbow
-// (QR + mobile wallets) need a real projectId (free at cloud.reown.com); we only
-// add them when one is set so a missing/placeholder id can't break the stack.
+// injectedWallet is dependency-free and never throws on mount (it only reads
+// window.ethereum), so it's always safe as the base. The MetaMask SDK / Rainbow
+// / WalletConnect connectors pull heavier SDKs that can throw while mounting on
+// some mobile browsers, so we only add them once a real WalletConnect projectId
+// is configured (free at cloud.reown.com).
 const wcProjectId = process.env.NEXT_PUBLIC_WC_PROJECT_ID;
 const wallets = wcProjectId
-  ? [{ groupName: "Popular", wallets: [metaMaskWallet, injectedWallet, rainbowWallet, walletConnectWallet] }]
-  : [{ groupName: "Popular", wallets: [metaMaskWallet, injectedWallet] }];
+  ? [{ groupName: "Popular", wallets: [injectedWallet, metaMaskWallet, rainbowWallet, walletConnectWallet] }]
+  : [{ groupName: "Popular", wallets: [injectedWallet] }];
 
 const wagmiConfig = getDefaultConfig({
   appName: "Pork",

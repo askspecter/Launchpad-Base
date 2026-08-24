@@ -34,8 +34,8 @@ export default function TermsPage() {
           <h2 className="font-display text-lg font-semibold text-zinc-900">No warranty</h2>
           <p className="mt-2">
             The interface is provided &quot;as is&quot;, without warranties of any kind. To the maximum
-            extent permitted by law, {SITE.company} is not liable for any losses arising from your use of
-            {SITE.name} or the underlying protocol.
+            extent permitted by law, {SITE.company} is not liable for any losses arising from your use
+            of {SITE.name} or the underlying protocol.
           </p>
         </section>
         <p className="text-zinc-500">

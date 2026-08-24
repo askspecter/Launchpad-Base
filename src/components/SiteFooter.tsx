@@ -18,8 +18,8 @@ export function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-24 border-t border-ink-line">
-      <div className="mx-auto max-w-6xl px-4 py-12">
+    <footer className="mt-20 px-4 pb-8">
+      <div className="mx-auto max-w-6xl card p-6 sm:p-10">
         <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
           {/* Brand + blurb */}
           <div className="max-w-sm">
