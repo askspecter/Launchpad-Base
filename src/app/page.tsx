@@ -4,7 +4,7 @@ import { SITE } from "@/lib/site";
 const RWA = ["ETH", "USDG", "NVDA", "AAPL", "TSLA", "HOOD", "COIN", "META", "AMZN", "MSFT", "GOOGL", "SPY"];
 
 const STEPS = [
-  { n: "01", t: "Say the word", d: "Type one sentence. Pork's AI drafts a name, ticker, logo, description, lore, a ready-to-post X thread, and meme prompts." },
+  { n: "01", t: "Pitch it in a line", d: "Type one sentence. Pork's AI drafts a name, ticker, logo, description, lore, a ready-to-post X thread, and meme prompts." },
   { n: "02", t: "Pick the model", d: "v1 instant Uniswap V3 pool, or v2 bonding curve that graduates to V4. AI recommends, you decide." },
   { n: "03", t: "Deploy to Pons", d: "One signed transaction from your own wallet. The token launches straight onto the Pons protocol." },
 ];

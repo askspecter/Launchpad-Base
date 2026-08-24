@@ -186,7 +186,7 @@ export function LaunchStudio() {
       <div className="animate-fade-up">
         <p className="eyebrow">The studio</p>
         <h1 className="mt-2 font-display text-3xl font-bold text-white sm:text-4xl">
-          Say it. <span className="grad-text">Ship it.</span>
+          Type it. <span className="grad-text">Launch it.</span>
         </h1>
         <p className="mt-2 max-w-xl text-sm text-zinc-400">
           One sentence becomes a full launch package. Edit anything, pick the model, and deploy to
