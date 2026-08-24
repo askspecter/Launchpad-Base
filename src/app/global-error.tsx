@@ -56,6 +56,25 @@ export default function GlobalError({
             The app hit an unexpected error. This is usually temporary — try
             reloading.
           </p>
+          {/* TEMP: surface the real cause so we can diagnose the mobile crash. */}
+          <pre
+            style={{
+              marginTop: "1rem",
+              padding: "0.75rem",
+              background: "rgba(0,0,0,0.05)",
+              borderRadius: "0.75rem",
+              fontSize: "0.72rem",
+              lineHeight: 1.4,
+              color: "#7f1d4a",
+              textAlign: "left",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+              overflowX: "auto",
+            }}
+          >
+            {String(error?.name || "Error")}: {String(error?.message || "unknown")}
+            {error?.digest ? `\ndigest: ${error.digest}` : ""}
+          </pre>
           <button
             onClick={() => reset()}
             style={{

@@ -29,6 +29,11 @@ export default function Error({
           This page hit an unexpected error. It&apos;s usually temporary — try
           again.
         </p>
+        {/* TEMP: surface the real cause so we can diagnose the mobile crash. */}
+        <pre className="mt-4 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-xl bg-black/5 p-3 text-left text-[0.72rem] leading-relaxed text-pink">
+          {String(error?.name || "Error")}: {String(error?.message || "unknown")}
+          {error?.digest ? `\ndigest: ${error.digest}` : ""}
+        </pre>
         <button onClick={() => reset()} className="btn-brand mt-6 inline-flex">
           Try again
         </button>
