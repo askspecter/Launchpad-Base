@@ -30,8 +30,8 @@ const wagmiConfig = getDefaultConfig({
 
 // Cinematic dark theme, keyed to Pork's rose accent.
 const porkTheme = darkTheme({
-  accentColor: "#ff3d7f",
-  accentColorForeground: "#0b0708",
+  accentColor: "#ec0e7b",
+  accentColorForeground: "#0a0a0c",
   borderRadius: "large",
   overlayBlur: "small",
   fontStack: "system",
