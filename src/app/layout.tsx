@@ -27,15 +27,25 @@ export const viewport: Viewport = {
   themeColor: "#fff3fa",
 };
 
-// Render at request time, not static export. Skips Next's static prerender step
-// (where wagmi/RainbowKit can trip during build) and keeps the build immune to
-// stale Vercel build caches.
-export const dynamic = "force-dynamic";
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
+        {/*
+          One-time cleanup of stale wallet state. Earlier broken deploys wrote
+          wagmi / WalletConnect / RainbowKit data to localStorage in shapes that
+          the current setup can't rehydrate — on real mobile Safari that threw in
+          the providers and white-screened the whole app. This runs before React
+          hydrates and, once per version, drops any old wallet keys so RainbowKit
+          always starts clean. (A fresh browser was never affected, which is why
+          it only reproduced on phones that had visited before.)
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var V='pork-wallet-reset-1';if(localStorage.getItem('pork.walletReset')===V)return;var kill=/^(wagmi|wc@2|walletconnect|WALLETCONNECT|rk-|@rainbow|pork\\.wagmi|W3M|WCM|@w3m|@appkit|reown|@reown|CBWSDK|-walletlink)/i;Object.keys(localStorage).forEach(function(k){if(kill.test(k))localStorage.removeItem(k)});localStorage.setItem('pork.walletReset',V)}catch(e){}})();",
+          }}
+        />
         {/*
           Fonts are loaded at runtime by the browser (not fetched at build),
           so a build never depends on reaching Google Fonts. The CSS variables
