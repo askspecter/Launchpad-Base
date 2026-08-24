@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────────────────────
+   Pork — cinematic base
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --font-display: "Space Grotesk";
+  --font-sans: "Inter";
+  --font-mono: "JetBrains Mono";
+  color-scheme: dark;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-ink-900 text-zinc-200 antialiased;
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    background-color: #0b0708;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+  ::selection {
+    background: rgba(255, 61, 127, 0.35);
+    color: #fff;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+  input, textarea, select {
+    font-family: inherit;
+  }
+}
+
+/* Cinematic backdrop: layered radial glows + fine film grain, fixed. */
+.cinema-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(60rem 60rem at 12% -10%, rgba(255, 61, 127, 0.18), transparent 60%),
+    radial-gradient(50rem 50rem at 100% 0%, rgba(255, 138, 61, 0.14), transparent 55%),
+    radial-gradient(70rem 40rem at 50% 120%, rgba(255, 61, 127, 0.10), transparent 60%),
+    #0b0708;
+}
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Signature gradient text + accents */
+.grad-text {
+  background: linear-gradient(100deg, #ff6fa0 0%, #ff3d7f 40%, #ff8a3d 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.grad-rule {
+  background: linear-gradient(90deg, transparent, rgba(255, 61, 127, 0.5), transparent);
+}
+
+@layer components {
+  /* Glass card */
+  .card {
+    @apply rounded-2xl border border-ink-line bg-white/[0.03] backdrop-blur-xl;
+    box-shadow: 0 30px 80px -40px rgba(0, 0, 0, 0.9);
+  }
+  .card-hover {
+    @apply transition duration-300;
+  }
+  .card-hover:hover {
+    @apply -translate-y-1 border-white/20 bg-white/[0.05];
+  }
+
+  /* Buttons */
+  .btn-brand {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white transition duration-200 disabled:cursor-not-allowed disabled:opacity-40;
+    background: linear-gradient(100deg, #ff3d7f, #ff6a54 55%, #ff8a3d);
+    box-shadow: 0 10px 30px -10px rgba(255, 61, 127, 0.6);
+  }
+  .btn-brand:hover:not(:disabled) {
+    filter: brightness(1.08);
+    box-shadow: 0 14px 40px -10px rgba(255, 61, 127, 0.8);
+    transform: translateY(-1px);
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-ink-line bg-white/[0.02] px-4 py-2.5 text-sm font-medium text-zinc-300 transition duration-200 hover:border-white/25 hover:bg-white/[0.06] hover:text-white disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  /* Chip / pill */
+  .chip {
+    @apply inline-flex items-center rounded-full border border-ink-line bg-white/[0.03] px-2.5 py-0.5 text-[11px] font-medium text-zinc-400;
+  }
+  .chip-accent {
+    @apply border-rose/40 text-rose;
+    background: rgba(255, 61, 127, 0.08);
+  }
+
+  /* Form field */
+  .field {
+    @apply w-full rounded-xl border border-ink-line bg-black/40 px-4 py-3 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600;
+  }
+  .field:focus {
+    @apply border-rose/60;
+    box-shadow: 0 0 0 3px rgba(255, 61, 127, 0.12);
+  }
+
+  /* Section eyebrow label */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-zinc-500;
+  }
+
+  /* Step number badge */
+  .step-badge {
+    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-ink-line bg-white/[0.04] font-mono text-sm font-bold text-rose;
+  }
+}
+
+/* Marquee row */
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 32s linear infinite;
+}
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+/* Thin scrollbar inside dropdowns */
+.thin-scroll::-webkit-scrollbar { width: 8px; }
+.thin-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 8px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; }
+  html { scroll-behavior: auto; }
+}
