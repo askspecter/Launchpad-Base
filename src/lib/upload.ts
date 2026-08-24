@@ -5,7 +5,10 @@
  * on-chain `logo` (so it renders in the feed and wallets).
  */
 
+// Stored images live as base64 in KV (Upstash), whose REST request cap is ~1MB.
+// Keep the encoded data URL comfortably under that so uploads never fail on size.
 const MAX_EDGE = 512;
+const TARGET_CHARS = 600_000; // ~450KB of image bytes — safely under the KV limit
 
 function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -23,9 +26,8 @@ function loadImage(file: File): Promise<HTMLImageElement> {
   });
 }
 
-async function toDownscaledDataUrl(file: File): Promise<string> {
-  const img = await loadImage(file);
-  const scale = Math.min(1, MAX_EDGE / Math.max(img.width, img.height));
+function drawAt(img: HTMLImageElement, edge: number): HTMLCanvasElement {
+  const scale = Math.min(1, edge / Math.max(img.width, img.height));
   const w = Math.max(1, Math.round(img.width * scale));
   const h = Math.max(1, Math.round(img.height * scale));
   const canvas = document.createElement("canvas");
@@ -34,10 +36,28 @@ async function toDownscaledDataUrl(file: File): Promise<string> {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas not supported.");
   ctx.drawImage(img, 0, 0, w, h);
-  // PNG keeps transparency; fall back to JPEG for photos to stay small.
-  const png = canvas.toDataURL("image/png");
-  if (png.length < 400_000) return png;
-  return canvas.toDataURL("image/jpeg", 0.85);
+  return canvas;
+}
+
+async function toDownscaledDataUrl(file: File): Promise<string> {
+  const img = await loadImage(file);
+
+  // Shrink the max edge and/or the JPEG quality until the encoded data URL fits
+  // under the KV size cap. PNG (keeps transparency) is preferred when it's small
+  // enough; otherwise JPEG at decreasing quality.
+  let smallest = "";
+  for (const edge of [MAX_EDGE, 448, 384, 320, 256]) {
+    const canvas = drawAt(img, edge);
+    const png = canvas.toDataURL("image/png");
+    if (png.length <= TARGET_CHARS) return png;
+    for (const q of [0.85, 0.72, 0.6, 0.5]) {
+      const jpg = canvas.toDataURL("image/jpeg", q);
+      if (!smallest || jpg.length < smallest.length) smallest = jpg;
+      if (jpg.length <= TARGET_CHARS) return jpg;
+    }
+  }
+  // Nothing fit the target (extreme source) — return the smallest we produced.
+  return smallest || (await Promise.resolve(drawAt(img, 256).toDataURL("image/jpeg", 0.4)));
 }
 
 /** Upload a file and return an absolute URL to the stored image. */
