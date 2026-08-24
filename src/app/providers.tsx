@@ -52,7 +52,7 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={porkTheme} modalSize="compact" initialChain={robinhoodChain}>
+        <RainbowKitProvider theme={porkTheme} modalSize="compact">
           {children}
         </RainbowKitProvider>
       </QueryClientProvider>
