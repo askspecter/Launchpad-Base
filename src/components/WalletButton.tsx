@@ -88,8 +88,18 @@ export function WalletButton({ variant = "solid" }: { variant?: "inline" | "soli
   function pick(which: "metaMask" | "generic") {
     setOpen(false);
     autoSwitched.current = false;
+    // Detect any EVM provider, including the dedicated ones that multi-chain
+    // wallets (Bitget/OKX/Trust) expose outside window.ethereum.
+    const w = window as unknown as {
+      ethereum?: unknown;
+      bitkeep?: { ethereum?: unknown };
+      bitgetWallet?: { ethereum?: unknown };
+      okxwallet?: unknown;
+      trustwallet?: unknown;
+    };
     const hasProvider =
-      typeof window !== "undefined" && typeof (window as { ethereum?: unknown }).ethereum !== "undefined";
+      typeof window !== "undefined" &&
+      !!(w.ethereum || w.bitkeep?.ethereum || w.bitgetWallet?.ethereum || w.okxwallet || w.trustwallet);
     if (!hasProvider) {
       window.alert(
         "No browser wallet detected. Open this site inside your wallet app's browser (e.g. MetaMask), or install the MetaMask extension."
@@ -124,10 +134,15 @@ export function WalletButton({ variant = "solid" }: { variant?: "inline" | "soli
               onClick={() => pick("generic")}
               className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-zinc-800 transition hover:bg-black/[0.04]"
             >
-              <span className="text-lg">👛</span> Other browser wallet
+              <span className="text-lg">👛</span>
+              <span className="min-w-0">
+                <span className="block">Bitget / OKX / Trust…</span>
+                <span className="block text-[11px] font-normal text-zinc-400">Other EVM browser wallet</span>
+              </span>
             </button>
             <p className="px-3 pb-2 pt-1.5 text-[11px] leading-snug text-zinc-400">
-              Requires an EVM wallet — you&apos;ll be switched to {robinhoodChain.name}.
+              Connects on the EVM network and switches you to {robinhoodChain.name}. If your wallet
+              opens on Solana, pick Ethereum/EVM first.
             </p>
           </div>
         )}

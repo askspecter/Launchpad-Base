@@ -26,18 +26,64 @@ import { robinhoodChain } from "@/lib/chain";
 // A richer modal (e.g. RainbowKit or WalletConnect QR for mobile) can be layered
 // back on later once it's verified stable on mobile Safari.
 // ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// EVM-provider targeting for multi-chain wallets.
+//
+// Wallets like Bitget, OKX and Trust are multi-chain (EVM + Solana + …). If we
+// just grab the bare `window.ethereum`, their in-app browser shows a connect
+// sheet defaulting to whatever network the wallet last used — often Solana —
+// which is useless for an EVM-only app. Each of these wallets *also* exposes a
+// dedicated EVM provider (e.g. window.bitkeep.ethereum). Targeting that provider
+// tells the wallet "this is an EVM dApp", so it presents the EVM/Robinhood
+// connect instead of Solana.
+// ─────────────────────────────────────────────────────────────────────────────
+type Eip1193 = { request: (...a: unknown[]) => Promise<unknown>; isMetaMask?: boolean };
+type MultiWindow = Window & {
+  ethereum?: Eip1193 & { providers?: Eip1193[] };
+  bitkeep?: { ethereum?: Eip1193 };
+  bitgetWallet?: { ethereum?: Eip1193 };
+  okxwallet?: Eip1193;
+  trustwallet?: Eip1193;
+};
+
+/** Return the best EVM (EIP-1193) provider, preferring a wallet's dedicated EVM
+ *  endpoint over a multi-chain router that might default to Solana. */
+function evmProvider(win?: unknown): Eip1193 | undefined {
+  const w = (win ?? (typeof window !== "undefined" ? window : undefined)) as MultiWindow | undefined;
+  if (!w) return undefined;
+  // Dedicated EVM providers exposed by multi-chain wallets.
+  const dedicated =
+    w.bitkeep?.ethereum ?? w.bitgetWallet?.ethereum ?? w.okxwallet ?? w.trustwallet;
+  if (dedicated) return dedicated;
+  const eth = w.ethereum;
+  if (!eth) return undefined;
+  // Some wallets inject several providers under window.ethereum.providers —
+  // prefer a genuine EVM one (MetaMask) when present.
+  if (Array.isArray(eth.providers) && eth.providers.length) {
+    return eth.providers.find((p: Eip1193) => p.isMetaMask) ?? eth.providers[0];
+  }
+  return eth;
+}
+
 const wagmiConfig = createConfig({
   chains: [robinhoodChain],
   transports: { [robinhoodChain.id]: http() },
-  // Two connectors so the user can pick an EVM wallet explicitly instead of the
-  // browser's default provider being used blindly:
-  //   [0] MetaMask, targeted directly (EVM, supports adding Robinhood Chain)
-  //   [1] any generic injected wallet (fallback)
+  // Two connectors so the user can pick a wallet explicitly:
+  //   [0] MetaMask, targeted directly.
+  //   [1] any EVM wallet — targets the dedicated EVM provider so multi-chain
+  //       wallets (Bitget/OKX/Trust) present the EVM connect, not Solana.
   // The app is Robinhood-Chain-only; the wallet button forces that network on
   // connect.
   connectors: [
     injected({ target: "metaMask", shimDisconnect: true }),
-    injected({ shimDisconnect: true }),
+    injected({
+      shimDisconnect: true,
+      target: () => ({
+        id: "evmInjected",
+        name: "Browser Wallet",
+        provider: (win) => evmProvider(win) as never,
+      }),
+    }),
   ],
   multiInjectedProviderDiscovery: false,
   ssr: true,
