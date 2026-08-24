@@ -16,6 +16,7 @@ interface Metrics {
 }
 interface AnalyticsData {
   configured: boolean;
+  dune: boolean;
   updatedAt: number;
   allTime: Metrics;
   day: Metrics;
@@ -41,6 +42,7 @@ export default function AnalyticsPage() {
 
   const m = data ? (range === "24h" ? data.day : data.allTime) : null;
   const scopeLabel = range === "24h" ? "Latest 24h" : "All time";
+  const dataSub = data?.dune ? "Live from Dune" : "Needs a Dune data source";
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-14">
@@ -85,15 +87,16 @@ export default function AnalyticsPage() {
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Stat label="Token launches" value={fmtCount(m?.launches)} sub={`${scopeLabel} · via ${SITE.name}`} big />
         <Stat label="Unique token devs" value={fmtCount(m?.uniqueDevs)} sub={`${scopeLabel} · via ${SITE.name}`} big />
-        <Stat label="Trading volume" value={fmtUsd(m?.volumeUsd)} sub="Needs a Dune data source" muted />
-        <Stat label="Trades" value={fmtCount(m?.tradesCount)} sub="Needs a Dune data source" muted />
-        <Stat label="Protocol revenue" value={fmtUsd(m?.protocolRevenueUsd)} sub="Needs a Dune data source" muted />
-        <Stat label="Creator earnings" value={fmtUsd(m?.creatorEarningsUsd)} sub="Needs a Dune data source" muted />
+        <Stat label="Trading volume" value={fmtUsd(m?.volumeUsd)} sub={dataSub} muted={m?.volumeUsd == null} />
+        <Stat label="Trades" value={fmtCount(m?.tradesCount)} sub={dataSub} muted={m?.tradesCount == null} />
+        <Stat label="Protocol revenue" value={fmtUsd(m?.protocolRevenueUsd)} sub={dataSub} muted={m?.protocolRevenueUsd == null} />
+        <Stat label="Creator earnings" value={fmtUsd(m?.creatorEarningsUsd)} sub={dataSub} muted={m?.creatorEarningsUsd == null} />
       </div>
 
       <p className="mt-4 text-xs leading-relaxed text-zinc-500">
-        Launches and unique devs are indexed live from {SITE.name}. Volume, trades, and revenue require
-        an onchain data provider (e.g. Dune) and are not tracked yet.
+        {data?.dune
+          ? `Volume, trades and revenue are supplied by Dune. Launches and unique devs are indexed live from ${SITE.name}.`
+          : `Launches and unique devs are indexed live from ${SITE.name}. Volume, trades, and revenue require an onchain data provider (e.g. Dune) and are not tracked yet.`}
       </p>
 
       {/* Launches chart */}
