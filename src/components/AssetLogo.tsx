@@ -8,11 +8,10 @@ import { useState } from "react";
  * a public logo CDN; crypto from a coin icon CDN. No API key required.
  */
 // Crypto marks are served locally from /public so they always render (no
-// dependency on a third-party icon CDN that can disappear). USDG is Global
-// Dollar; per request it shows the USDC dollar mark.
+// dependency on a third-party icon CDN that can disappear).
 const CRYPTO: Record<string, string> = {
   ETH: "/eth.svg",
-  USDG: "/usdc.svg",
+  USDG: "/usdg.png", // Global Dollar — official green mark
   USDC: "/usdc.svg",
 };
 
