@@ -19,25 +19,12 @@ export default function GlobalError({
   useEffect(() => {
     // Surface the real cause in the console for debugging.
     console.error(error);
-    // Self-heal: most root-level crashes here come from stale wallet state
-    // persisted in localStorage (a connector from an old release that no longer
-    // exists, which makes wagmi throw on `uid` during rehydrate). Clear the
-    // wallet/wagmi/WalletConnect storage once per browser session and reload —
-    // guarded so a genuinely persistent error can't cause a reload loop.
-    try {
-      const HEAL_KEY = "pork:selfheal:v1";
-      if (!sessionStorage.getItem(HEAL_KEY)) {
-        sessionStorage.setItem(HEAL_KEY, "1");
-        const drop = /^(wagmi|pork\.wagmi|rk-|wc@|walletconnect|WALLETCONNECT|W3M|@w3m|@appkit)/i;
-        for (const k of Object.keys(localStorage)) {
-          if (drop.test(k)) localStorage.removeItem(k);
-        }
-        window.location.reload();
-      }
-    } catch {
-      /* storage unavailable (private mode) — fall through to the manual UI */
-    }
   }, [error]);
+
+  // TEMPORARY DIAGNOSTIC: show the real error on screen so we can capture the
+  // exact cause on real mobile Safari (which our headless tests can't reproduce).
+  const detail = `${error?.name ?? "Error"}: ${error?.message ?? "(no message)"}`;
+  const stack = (error?.stack ?? "").split("\n").slice(0, 6).join("\n");
 
   return (
     <html lang="en">
@@ -74,6 +61,25 @@ export default function GlobalError({
             The app hit an unexpected error. This is usually temporary — try
             reloading.
           </p>
+          <pre
+            style={{
+              marginTop: "1rem",
+              padding: "0.75rem",
+              background: "rgba(0,0,0,0.05)",
+              borderRadius: "0.75rem",
+              fontSize: "0.7rem",
+              lineHeight: 1.4,
+              color: "#b00a5e",
+              textAlign: "left",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+              overflowX: "auto",
+            }}
+          >
+            {detail}
+            {error?.digest ? `\n\ndigest: ${error.digest}` : ""}
+            {stack ? `\n\n${stack}` : ""}
+          </pre>
           <button
             onClick={() => reset()}
             style={{
