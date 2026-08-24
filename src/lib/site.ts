@@ -5,6 +5,8 @@ export const SITE = {
   description:
     "Cinematic AI launchpad. Describe a token in one sentence, watch the full launch package render, and deploy to Pons on Robinhood Chain, non-custodial.",
   x: "https://x.com/porkdotworks",
+  xHandle: "@porkdotworks",
+  company: "Pork",
   chain: "Robinhood Chain",
   poweredBy: "Pons",
 } as const;
