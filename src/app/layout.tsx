@@ -3,6 +3,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { WalletGate } from "@/components/WalletGate";
 import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -57,6 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main className="flex-1">{children}</main>
             <SiteFooter />
           </div>
+          <WalletGate />
         </Providers>
       </body>
     </html>

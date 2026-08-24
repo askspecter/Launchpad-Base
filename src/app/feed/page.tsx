@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { explorerToken, explorerTx } from "@/lib/chain";
+import { explorerTx } from "@/lib/chain";
 
 interface LaunchRecord {
   token: string;
@@ -86,10 +87,10 @@ export default function FeedPage() {
               </div>
 
               <div className="mt-3 flex gap-2">
-                <a href={explorerToken(it.token)} target="_blank" rel="noreferrer" className="btn-ghost flex-1 !py-2 text-xs">
-                  Token
-                </a>
-                <a href={explorerTx(it.txHash)} target="_blank" rel="noreferrer" className="btn-ghost flex-1 !py-2 text-xs">
+                <Link href={`/launch/${it.token}`} className="btn-brand flex-1 !py-2 text-xs">
+                  Trade →
+                </Link>
+                <a href={explorerTx(it.txHash)} target="_blank" rel="noreferrer" className="btn-ghost !py-2 text-xs">
                   Tx
                 </a>
                 {it.twitter && (

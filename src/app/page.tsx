@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { SITE } from "@/lib/site";
 import { AssetLogo } from "@/components/AssetLogo";
-import { explorerToken } from "@/lib/chain";
 
 const RWA = ["ETH", "USDG", "NVDA", "AAPL", "TSLA", "HOOD", "COIN", "META", "AMZN", "MSFT", "GOOGL", "SPY"];
 
@@ -133,11 +132,9 @@ export default function HomePage() {
         ) : (
           <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {shown.map((it) => (
-              <a
+              <Link
                 key={it.token}
-                href={explorerToken(it.token)}
-                target="_blank"
-                rel="noreferrer"
+                href={`/launch/${it.token}`}
                 className="card card-hover overflow-hidden"
               >
                 <div className="relative aspect-square bg-black/[0.03]">
@@ -156,7 +153,7 @@ export default function HomePage() {
                     <span className="text-xs text-zinc-500">{timeAgo(it.createdAt)}</span>
                   </div>
                 </div>
-              </a>
+              </Link>
             ))}
           </div>
         )}
