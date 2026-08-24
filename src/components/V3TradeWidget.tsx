@@ -5,7 +5,7 @@ import { useAccount, useBalance, useReadContract, useWriteContract } from "wagmi
 import { formatEther, formatUnits, parseEther, parseUnits, type Address } from "viem";
 import { v3SwapRouterAbi, erc20MiniAbi } from "@/lib/pons/abis";
 import { PONS_V1 } from "@/lib/pons";
-import { explorerTx } from "@/lib/chain";
+import { explorerTx, robinhoodChain } from "@/lib/chain";
 
 /**
  * In-app trading for v1 tokens via the Uniswap V3 SwapRouter.
@@ -40,7 +40,7 @@ export function V3TradeWidget({
   const fee = poolFee || 10000;
 
   // Live wallet balances: native ETH for buying, the token for selling.
-  const { data: ethBal, refetch: refetchEth } = useBalance({ address });
+  const { data: ethBal, refetch: refetchEth } = useBalance({ address, chainId: robinhoodChain.id });
   const { data: tokenBalRaw, refetch: refetchToken } = useReadContract({
     address: token,
     abi: erc20MiniAbi,

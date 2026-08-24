@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import "@rainbow-me/rainbowkit/styles.css"; // REQUIRED, before globals — styles the connect modal
 import "./globals.css";
 import { Providers } from "./providers";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -26,10 +27,9 @@ export const viewport: Viewport = {
   themeColor: "#fff3fa",
 };
 
-// Render at request time, not static export. This skips Next's static prerender
-// step entirely, which is where wagmi/RainbowKit throws "reading 'uid'" — and
-// makes the build immune to stale Vercel build caches. (viem is also deduped via
-// package.json overrides so the runtime never hits that bug either.)
+// Render at request time, not static export. Skips Next's static prerender step
+// (where wagmi/RainbowKit can trip during build) and keeps the build immune to
+// stale Vercel build caches.
 export const dynamic = "force-dynamic";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

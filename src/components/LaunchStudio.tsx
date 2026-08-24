@@ -9,6 +9,7 @@ import { DeployButton } from "./DeployButton";
 import { allVersionInfo, type LaunchInput, type PonsVersion, type QuoteAsset } from "@/lib/pons";
 import type { LaunchPackage } from "@/lib/ai/schema";
 import { uploadLogo } from "@/lib/upload";
+import { robinhoodChain } from "@/lib/chain";
 
 interface GenerateResponse {
   package: LaunchPackage;
@@ -38,7 +39,13 @@ interface V2Options {
 export function LaunchStudio() {
   const versions = useMemo(() => allVersionInfo(), []);
   const { address, isConnected } = useAccount();
-  const { data: balance } = useBalance({ address });
+  // Read the wallet's native balance on Robinhood Chain explicitly, so the
+  // deploy step shows the real balance regardless of the wallet's active chain.
+  const { data: balance } = useBalance({
+    address,
+    chainId: robinhoodChain.id,
+    query: { enabled: Boolean(address) && isConnected },
+  });
 
   const [idea, setIdea] = useState("");
   const [loading, setLoading] = useState(false);

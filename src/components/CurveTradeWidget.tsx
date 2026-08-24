@@ -5,7 +5,7 @@ import { useAccount, useBalance, useReadContract, useWriteContract } from "wagmi
 import { formatEther, formatUnits, parseAbi, parseEther, parseUnits, zeroAddress, type Address } from "viem";
 import { v2CurveAbi } from "@/lib/pons/abisV2";
 import { quoteBuy, quoteSell, withSlippage } from "@/lib/pons/quote";
-import { explorerTx } from "@/lib/chain";
+import { explorerTx, robinhoodChain } from "@/lib/chain";
 
 const erc20Abi = parseAbi([
   "function approve(address spender, uint256 amount) returns (bool)",
@@ -51,6 +51,7 @@ export function CurveTradeWidget({
   // (parseEther), so the ERC-20 quote balance is read/formatted at 18 too.
   const { data: ethBal, refetch: refetchEth } = useBalance({
     address,
+    chainId: robinhoodChain.id,
     query: { enabled: !!address && isNative },
   });
   const { data: quoteBalRaw, refetch: refetchQuote } = useReadContract({
