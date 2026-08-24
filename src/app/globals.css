@@ -173,6 +173,15 @@
   will-change: transform;
   animation: marquee 32s linear infinite;
 }
+/* The track renders the ticker list twice, so translating by -50% loops it
+   seamlessly. These keyframes are defined here (not only in tailwind.config)
+   because the `animate-marquee` utility is never used, so Tailwind would
+   otherwise not emit them and the row would sit still. */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-track:hover { animation-play-state: paused; }
 .marquee-mask {
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
   mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);

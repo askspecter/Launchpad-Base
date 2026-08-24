@@ -24,9 +24,14 @@ export function buildImagePrompt(style: ImageStyle, ticker: string, description:
     );
   }
   return (
-    `Minimal, iconic app-style logo for a crypto token "$${ticker}". ${subject}. ` +
-    `Flat vector, bold, centered, high contrast, clean solid background, ` +
-    `magenta-pink and black palette. No text, no letters, no watermark.`
+    `A professional, iconic logo mark for a crypto token "$${ticker}". ${subject}. ` +
+    `Design it as a single bold central emblem or a cute glossy mascot character — ` +
+    `think top-tier memecoin brand identity or a polished app icon. ` +
+    `Vector illustration, thick clean outlines, smooth cel shading, rich gradients, ` +
+    `subtle rim light and gloss, vibrant saturated colors with a magenta-pink accent, ` +
+    `strong silhouette, centered composition, generous padding, simple flat or soft ` +
+    `radial background. Crisp, balanced, instantly recognizable at small sizes. ` +
+    `No text, no letters, no words, no numbers, no watermark, no signature, no border frame.`
   );
 }
 
