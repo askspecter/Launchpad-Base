@@ -25,6 +25,11 @@ export const viewport: Viewport = {
   themeColor: "#fff3fa",
 };
 
+// Render at request time instead of static export. The wagmi/RainbowKit
+// providers can throw during Next's static prerender ("reading 'uid'"); serving
+// dynamically avoids that while keeping normal SSR + client hydration.
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">

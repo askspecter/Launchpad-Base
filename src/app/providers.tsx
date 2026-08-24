@@ -1,7 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { WagmiProvider, http } from "wagmi";
 import { RainbowKitProvider, getDefaultConfig, darkTheme } from "@rainbow-me/rainbowkit";
 import {
@@ -12,82 +12,41 @@ import {
   walletConnectWallet,
 } from "@rainbow-me/rainbowkit/wallets";
 import { robinhoodChain } from "@/lib/chain";
-import { WalletErrorBoundary } from "@/components/WalletErrorBoundary";
 
-// Base wallets work with NO WalletConnect projectId:
-//  - injectedWallet: browser-extension wallets (desktop).
-//  - coinbaseWallet: Coinbase Smart Wallet, which connects in mobile Safari via
-//    a passkey popup (no app/extension needed) — this is what makes "Connect"
-//    actually do something on a phone.
-// MetaMask SDK / Rainbow / WalletConnect (QR + more mobile wallets) are added
-// only when a real projectId is set (free at cloud.reown.com).
-const wcProjectId = process.env.NEXT_PUBLIC_WC_PROJECT_ID;
-const wallets = wcProjectId
-  ? [{ groupName: "Popular", wallets: [injectedWallet, coinbaseWallet, metaMaskWallet, rainbowWallet, walletConnectWallet] }]
-  : [{ groupName: "Popular", wallets: [injectedWallet, coinbaseWallet] }];
-
+// Same straightforward setup Verbo uses. Full wallet list; MetaMask / Rainbow /
+// WalletConnect need a real WalletConnect projectId (free at cloud.reown.com)
+// via NEXT_PUBLIC_WC_PROJECT_ID. Coinbase + injected also work without one.
 const wagmiConfig = getDefaultConfig({
   appName: "Pork",
-  // getDefaultConfig requires a string; the WC-based wallets above are only
-  // included when a real id exists, so this placeholder is never used to init WC.
-  projectId: wcProjectId || "pork_no_walletconnect",
+  projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID || "pork_missing_wc_project_id",
   chains: [robinhoodChain],
   transports: { [robinhoodChain.id]: http() },
   ssr: true,
-  wallets,
+  wallets: [
+    {
+      groupName: "Popular",
+      wallets: [injectedWallet, coinbaseWallet, metaMaskWallet, rainbowWallet, walletConnectWallet],
+    },
+  ],
 });
 
-// Cinematic dark theme, keyed to Pork's logo pink.
 const porkTheme = darkTheme({
   accentColor: "#ec0e7b",
-  accentColorForeground: "#0a0a0c",
+  accentColorForeground: "#ffffff",
   borderRadius: "large",
   overlayBlur: "small",
   fontStack: "system",
 });
 
-/**
- * WagmiProvider/RainbowKitProvider cannot render during SSR/prerender here:
- * doing so throws "Cannot read properties of undefined (reading 'uid')" and
- * fails Next's static export (it breaks even on pages with no wallet hooks,
- * because the providers live in the root layout). So we mount the whole wallet
- * stack on the client only.
- *
- * `useWalletReady()` is the SINGLE source of truth for "is the wallet context
- * mounted". Every component that calls a wagmi/RainbowKit hook must gate on it,
- * so a consumer never renders before the provider exists (no ordering race:
- * the provider tree and this flag flip in the same render).
- */
-const WalletReadyContext = createContext(false);
-export function useWalletReady(): boolean {
-  return useContext(WalletReadyContext);
-}
-
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
-  // Server + first client render: no wallet providers. Content still renders;
-  // wallet-dependent components show their gated fallback via useWalletReady().
-  const withoutWallet = (
-    <WalletReadyContext.Provider value={false}>{children}</WalletReadyContext.Provider>
-  );
-  if (!mounted) return withoutWallet;
-
-  // Client: mount the wallet stack, but if it throws, degrade gracefully to the
-  // no-wallet tree instead of blanking the page.
   return (
-    <WalletErrorBoundary fallback={withoutWallet}>
-      <WalletReadyContext.Provider value={true}>
-        <WagmiProvider config={wagmiConfig}>
-          <QueryClientProvider client={queryClient}>
-            <RainbowKitProvider theme={porkTheme} modalSize="compact">
-              {children}
-            </RainbowKitProvider>
-          </QueryClientProvider>
-        </WagmiProvider>
-      </WalletReadyContext.Provider>
-    </WalletErrorBoundary>
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider theme={porkTheme} modalSize="compact">
+          {children}
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 }
