@@ -1,14 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useAccount, useBalance, useChainId, useConnect, useDisconnect, useSwitchChain } from "wagmi";
+import { useEffect, useRef, useState } from "react";
+import {
+  useAccount,
+  useBalance,
+  useChainId,
+  useConnect,
+  useDisconnect,
+  useSwitchChain,
+} from "wagmi";
 import { robinhoodChain } from "@/lib/chain";
 
 /**
- * Lightweight wallet button built directly on wagmi's `injected` connector
- * (no RainbowKit — see src/app/providers.tsx for why). Connects to an in-page
- * wallet (MetaMask / other extensions, or a wallet app's in-app browser),
- * forces the Robinhood Chain network, and shows the wallet's native balance.
+ * Lightweight wallet button built directly on wagmi's `injected` connectors
+ * (no RainbowKit — see src/app/providers.tsx). It lets the user pick an EVM
+ * wallet explicitly (MetaMask) so the browser's default provider doesn't grab a
+ * Solana wallet like Phantom, forces the Robinhood Chain network, and shows the
+ * wallet's native balance.
  *
  *  - variant "inline": text-style item for the desktop nav pill.
  *  - variant "solid":  compact pink button for mobile.
@@ -16,10 +24,12 @@ import { robinhoodChain } from "@/lib/chain";
 export function WalletButton({ variant = "solid" }: { variant?: "inline" | "solid" }) {
   const inline = variant === "inline";
   const [mounted, setMounted] = useState(false);
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
   useEffect(() => setMounted(true), []);
 
   const { address, isConnected } = useAccount();
-  const { connect, connectors, isPending } = useConnect();
+  const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
   const chainId = useChainId();
   const { switchChain, isPending: switching } = useSwitchChain();
@@ -31,11 +41,25 @@ export function WalletButton({ variant = "solid" }: { variant?: "inline" | "soli
     query: { enabled: Boolean(address) && isConnected },
   });
 
+  // Close the picker on outside click / Escape.
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
   const connectCls = inline
     ? "rounded-full px-4 py-2 text-sm font-semibold text-pink transition hover:text-zinc-900"
     : "btn-brand !px-4 !py-2";
 
-  // Avoid a hydration flash: render an inert placeholder until mounted.
   if (!mounted) {
     return (
       <div aria-hidden style={{ opacity: 0, pointerEvents: "none" }}>
@@ -44,26 +68,55 @@ export function WalletButton({ variant = "solid" }: { variant?: "inline" | "soli
     );
   }
 
-  function handleConnect() {
-    const injected = connectors[0];
+  const metaMask = connectors[0];
+  const generic = connectors[1] ?? connectors[0];
+
+  function pick(which: "metaMask" | "generic") {
+    setOpen(false);
     const hasProvider =
       typeof window !== "undefined" && typeof (window as { ethereum?: unknown }).ethereum !== "undefined";
-    if (!injected || !hasProvider) {
+    if (!hasProvider) {
       window.alert(
-        "No browser wallet detected. Open this site inside your wallet app's browser (e.g. MetaMask), or install a wallet extension."
+        "No browser wallet detected. Open this site inside your wallet app's browser (e.g. MetaMask), or install the MetaMask extension."
       );
       return;
     }
-    // Request the Robinhood Chain up front so the wallet switches/adds it on
-    // connect instead of landing on whatever network (or Solana) it was on.
-    connect({ connector: injected, chainId: robinhoodChain.id });
+    // Request Robinhood Chain up front so the wallet switches/adds it during the
+    // connect prompt instead of staying on its default (e.g. Solana / mainnet).
+    connect({ connector: which === "metaMask" ? metaMask : generic, chainId: robinhoodChain.id });
   }
 
   if (!isConnected) {
     return (
-      <button className={connectCls} onClick={handleConnect} type="button" disabled={isPending}>
-        {isPending ? "Connecting…" : "Connect"}
-      </button>
+      <div className="relative" ref={wrapRef}>
+        <button className={connectCls} onClick={() => setOpen((v) => !v)} type="button">
+          Connect
+        </button>
+        {open && (
+          <div className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-2xl border border-ink-line bg-white/95 p-1.5 shadow-glow backdrop-blur">
+            <p className="px-3 pb-1.5 pt-2 text-xs font-semibold text-zinc-400">
+              Connect an EVM wallet
+            </p>
+            <button
+              type="button"
+              onClick={() => pick("metaMask")}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-zinc-800 transition hover:bg-black/[0.04]"
+            >
+              <span className="text-lg">🦊</span> MetaMask
+            </button>
+            <button
+              type="button"
+              onClick={() => pick("generic")}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-zinc-800 transition hover:bg-black/[0.04]"
+            >
+              <span className="text-lg">👛</span> Other browser wallet
+            </button>
+            <p className="px-3 pb-2 pt-1.5 text-[11px] leading-snug text-zinc-400">
+              {robinhoodChain.name} is an EVM network — Solana-only wallets won&apos;t work.
+            </p>
+          </div>
+        )}
+      </div>
     );
   }
 
