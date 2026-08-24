@@ -4,7 +4,7 @@ export const SITE = {
   tagline: "One line in. A token out.",
   description:
     "Cinematic AI launchpad. Say it in a sentence, watch the full launch package render, and deploy to Pons on Robinhood Chain, non-custodial.",
-  x: "https://x.com",
+  x: "https://x.com/rhpork",
   chain: "Robinhood Chain",
   poweredBy: "Pons",
 } as const;

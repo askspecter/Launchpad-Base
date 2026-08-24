@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { generateLaunchPackage } from "@/lib/ai/generate";
-import { generateFallbackLogo } from "@/lib/ai/avatar";
+import { generateTokenImage } from "@/lib/ai/image";
 import { checkTickerAvailability } from "@/lib/ai/availability";
 
 export const runtime = "nodejs";
@@ -29,8 +29,8 @@ export async function POST(req: Request) {
   try {
     const pkg = await generateLaunchPackage(idea);
 
-    // Logo: use configured image provider if present, else deterministic SVG.
-    const logo = await generateLogo(pkg.ticker, pkg.description);
+    // Logo: real AI image if a provider is configured, else deterministic SVG.
+    const logo = await generateTokenImage(pkg.ticker, pkg.description, "icon");
 
     // Availability is a soft warning; run it in parallel-safe fashion.
     const availability = await checkTickerAvailability(pkg.ticker);
@@ -43,26 +43,5 @@ export async function POST(req: Request) {
       ? 503
       : 500;
     return NextResponse.json({ error: message }, { status });
-  }
-}
-
-async function generateLogo(ticker: string, description: string): Promise<string> {
-  const url = process.env.IMAGE_API_URL;
-  const key = process.env.IMAGE_API_KEY;
-  if (!url || !key) return generateFallbackLogo(ticker);
-
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
-      body: JSON.stringify({
-        prompt: `Minimal, iconic logo for a crypto token "$${ticker}". ${description}. Flat vector, centered, bold.`,
-      }),
-    });
-    if (!res.ok) return generateFallbackLogo(ticker);
-    const data = (await res.json()) as { image?: string; url?: string };
-    return data.image || data.url || generateFallbackLogo(ticker);
-  } catch {
-    return generateFallbackLogo(ticker);
   }
 }

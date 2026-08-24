@@ -10,6 +10,7 @@ Non-custodial: every transaction is signed by your own wallet.
 ## ✨ What it does
 
 - **One sentence → full package:** name, ticker, logo, description, lore, a ready-to-post X thread, and meme prompts.
+- **AI image generation:** regenerate the token art on demand in two styles — **Icon** (clean logo) or **Photo** (photorealistic, cinematic) — or upload your own.
 - **Pick v1 / v2** with an AI recommendation:
   - **v1 — Instant Pool:** one tx deploys the token + a locked **Uniswap V3** pool (WETH). Tradable at once. Open, no whitelist.
   - **v2 — Bonding Curve:** fair launch that **graduates to Uniswap V4**. Supports RWA pairs (ETH/USDG/NVDA/AAPL/HOOD…). Creators paid in ETH.

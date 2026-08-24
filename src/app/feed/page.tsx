@@ -69,7 +69,7 @@ export default function FeedPage() {
               <div className="flex items-center gap-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={it.logo || "/icon.svg"}
+                  src={it.logo || "/pork-logo.png"}
                   alt={it.symbol}
                   className="h-12 w-12 rounded-xl border border-ink-line object-cover"
                 />

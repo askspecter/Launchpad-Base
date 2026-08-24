@@ -57,6 +57,35 @@ export function LaunchStudio() {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
+  // AI image generation (icon vs photo), on demand.
+  const [imageStyle, setImageStyle] = useState<"icon" | "photo">("icon");
+  const [imageBusy, setImageBusy] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
+
+  async function regenImage(style: "icon" | "photo") {
+    setImageStyle(style);
+    setImageError(null);
+    setImageBusy(true);
+    try {
+      const res = await fetch("/api/image", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ticker,
+          description: description || result?.package.lore || "",
+          style,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Image generation failed.");
+      if (data.image) setLogo(data.image);
+    } catch (err) {
+      setImageError(err instanceof Error ? err.message : "Image generation failed.");
+    } finally {
+      setImageBusy(false);
+    }
+  }
+
   // v2-specific, loaded live from chain.
   const [v2opts, setV2opts] = useState<V2Options | null>(null);
   const [v2loading, setV2loading] = useState(false);
@@ -191,25 +220,61 @@ export function LaunchStudio() {
         <>
           {/* Step 2 — package */}
           <Step n="02" title="Your AI launch package" className="animate-fade-up">
-            <div className="flex items-center gap-4">
-              <div className="flex flex-col items-center gap-1.5">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={logo}
-                  alt="token logo"
-                  className="h-20 w-20 rounded-2xl border border-ink-line object-cover shadow-glow"
-                />
-                <label className="btn-ghost cursor-pointer !px-2 !py-1 text-[10px]">
-                  {uploading ? "Uploading…" : "Upload"}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    disabled={uploading}
-                    onChange={(e) => handleLogoUpload(e.target.files?.[0])}
+            <div className="flex items-start gap-4">
+              <div className="flex flex-col items-center gap-2">
+                <div className="relative h-24 w-24">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={logo}
+                    alt="token art"
+                    className="h-24 w-24 rounded-2xl border border-ink-line object-cover shadow-glow"
                   />
-                </label>
+                  {imageBusy && (
+                    <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/60 backdrop-blur-sm">
+                      <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Icon / Photo segmented control */}
+                <div className="flex rounded-lg border border-ink-line p-0.5 text-[10px]">
+                  {(["icon", "photo"] as const).map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => regenImage(s)}
+                      disabled={imageBusy}
+                      className={`rounded-md px-2 py-1 font-semibold capitalize transition ${
+                        imageStyle === s ? "bg-pink text-white" : "text-zinc-400 hover:text-white"
+                      }`}
+                      title={s === "photo" ? "Generate a photorealistic image" : "Generate an icon logo"}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={() => regenImage(imageStyle)}
+                    disabled={imageBusy}
+                    className="btn-ghost !px-2 !py-1 text-[10px]"
+                    title="Generate a new AI image"
+                  >
+                    {imageBusy ? "Generating…" : "✦ Regenerate"}
+                  </button>
+                  <label className="btn-ghost cursor-pointer !px-2 !py-1 text-[10px]">
+                    {uploading ? "Uploading…" : "Upload"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploading}
+                      onChange={(e) => handleLogoUpload(e.target.files?.[0])}
+                    />
+                  </label>
+                </div>
               </div>
+
               <div className="grid flex-1 grid-cols-2 gap-2">
                 <Field label="Name" value={name} onChange={setName} />
                 <Field
@@ -220,6 +285,7 @@ export function LaunchStudio() {
                 />
               </div>
             </div>
+            {imageError && <p className="mt-1 text-xs text-red-400">{imageError}</p>}
             {uploadError && <p className="mt-1 text-xs text-red-400">{uploadError}</p>}
 
             <div className="mt-3">

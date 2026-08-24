@@ -9,20 +9,28 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Pure black/white canvas — no warm tint.
         ink: {
-          950: "#080506",
-          900: "#0b0708",
-          800: "#120d0f",
-          700: "#1a1315",
+          950: "#050506",
+          900: "#0a0a0c",
+          800: "#121216",
+          700: "#1a1a20",
           line: "rgba(255,255,255,0.08)",
         },
+        // Brand pink, sampled from the Pork ribbon mark.
+        pink: {
+          DEFAULT: "#ec0e7b",
+          soft: "#ff5fa5",
+          deep: "#b00a5e",
+        },
+        // Legacy aliases kept pink so the theme stays black/white/pink.
         rose: {
-          DEFAULT: "#ff3d7f",
-          soft: "#ff6fa0",
+          DEFAULT: "#ec0e7b",
+          soft: "#ff5fa5",
         },
         ember: {
-          DEFAULT: "#ff8a3d",
-          soft: "#ffb26b",
+          DEFAULT: "#ff5fa5",
+          soft: "#ff8bc0",
         },
       },
       fontFamily: {
@@ -31,8 +39,8 @@ const config: Config = {
         mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
       },
       boxShadow: {
-        glow: "0 0 0 1px rgba(255,61,127,0.35), 0 20px 60px -20px rgba(255,61,127,0.45)",
-        card: "0 30px 80px -40px rgba(0,0,0,0.9)",
+        glow: "0 0 0 1px rgba(236,14,123,0.35), 0 20px 60px -20px rgba(236,14,123,0.5)",
+        card: "0 30px 80px -40px rgba(0,0,0,0.95)",
       },
       keyframes: {
         "fade-up": {

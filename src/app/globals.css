@@ -19,12 +19,12 @@
   body {
     @apply bg-ink-900 text-zinc-200 antialiased;
     font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-    background-color: #0b0708;
+    background-color: #0a0a0c;
     min-height: 100dvh;
     overflow-x: hidden;
   }
   ::selection {
-    background: rgba(255, 61, 127, 0.35);
+    background: rgba(236, 14, 123, 0.4);
     color: #fff;
   }
   h1, h2, h3 {
@@ -42,10 +42,10 @@
   inset: 0;
   z-index: -2;
   background:
-    radial-gradient(60rem 60rem at 12% -10%, rgba(255, 61, 127, 0.18), transparent 60%),
-    radial-gradient(50rem 50rem at 100% 0%, rgba(255, 138, 61, 0.14), transparent 55%),
-    radial-gradient(70rem 40rem at 50% 120%, rgba(255, 61, 127, 0.10), transparent 60%),
-    #0b0708;
+    radial-gradient(60rem 60rem at 12% -10%, rgba(236, 14, 123, 0.20), transparent 60%),
+    radial-gradient(50rem 50rem at 100% 0%, rgba(255, 95, 165, 0.12), transparent 55%),
+    radial-gradient(70rem 40rem at 50% 120%, rgba(236, 14, 123, 0.10), transparent 60%),
+    #0a0a0c;
 }
 .grain {
   position: fixed;
@@ -59,13 +59,13 @@
 
 /* Signature gradient text + accents */
 .grad-text {
-  background: linear-gradient(100deg, #ff6fa0 0%, #ff3d7f 40%, #ff8a3d 100%);
+  background: linear-gradient(100deg, #ff5fa5 0%, #ec0e7b 55%, #b00a5e 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 .grad-rule {
-  background: linear-gradient(90deg, transparent, rgba(255, 61, 127, 0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgba(236, 14, 123, 0.6), transparent);
 }
 
 @layer components {
@@ -84,12 +84,12 @@
   /* Buttons */
   .btn-brand {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white transition duration-200 disabled:cursor-not-allowed disabled:opacity-40;
-    background: linear-gradient(100deg, #ff3d7f, #ff6a54 55%, #ff8a3d);
-    box-shadow: 0 10px 30px -10px rgba(255, 61, 127, 0.6);
+    background: linear-gradient(100deg, #ff5fa5, #ec0e7b 55%, #b00a5e);
+    box-shadow: 0 10px 30px -10px rgba(236, 14, 123, 0.6);
   }
   .btn-brand:hover:not(:disabled) {
     filter: brightness(1.08);
-    box-shadow: 0 14px 40px -10px rgba(255, 61, 127, 0.8);
+    box-shadow: 0 14px 40px -10px rgba(236, 14, 123, 0.85);
     transform: translateY(-1px);
   }
   .btn-ghost {
@@ -102,7 +102,7 @@
   }
   .chip-accent {
     @apply border-rose/40 text-rose;
-    background: rgba(255, 61, 127, 0.08);
+    background: rgba(236, 14, 123, 0.08);
   }
 
   /* Form field */
@@ -111,7 +111,7 @@
   }
   .field:focus {
     @apply border-rose/60;
-    box-shadow: 0 0 0 3px rgba(255, 61, 127, 0.12);
+    box-shadow: 0 0 0 3px rgba(236, 14, 123, 0.12);
   }
 
   /* Section eyebrow label */
