@@ -66,7 +66,14 @@ export function DeployButton({ input, disabled }: { input: LaunchInput; disabled
     if (!address) return;
     try {
       if (chainId !== robinhoodChain.id) {
-        await switchChainAsync({ chainId: robinhoodChain.id });
+        try {
+          await switchChainAsync({ chainId: robinhoodChain.id });
+        } catch {
+          throw new Error(
+            `Your wallet must be on ${robinhoodChain.name} (chain ${robinhoodChain.id}). ` +
+              `Switch networks in your wallet — this is an EVM chain, not Solana — then try again.`
+          );
+        }
       }
       setStatus("preparing");
       const plan = await strategy.prepareLaunch(input, address);
@@ -79,6 +86,10 @@ export function DeployButton({ input, disabled }: { input: LaunchInput; disabled
         functionName: plan.functionName,
         args: plan.args as unknown[],
         value: plan.value,
+        // Enforce the network on the tx itself, so a wallet still on another
+        // chain (e.g. Solana) gets a clear chain-mismatch error instead of
+        // silently sending — and never lands on the wrong network.
+        chainId: robinhoodChain.id,
       });
       setTxHash(hash);
       setStatus("sent");

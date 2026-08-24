@@ -24,7 +24,7 @@ interface TokenStat {
   volumeUsd: number | null;
 }
 
-type Sort = "newest" | "oldest";
+type Sort = "newest" | "oldest" | "mcap" | "volume";
 type Ver = "all" | "v1" | "v2";
 
 export default function HomePage() {
@@ -60,11 +60,29 @@ export default function HomePage() {
     if (ver !== "all") list = list.filter((i) => i.version === ver);
     const term = q.trim().toLowerCase();
     if (term) list = list.filter((i) => `${i.name} ${i.symbol}`.toLowerCase().includes(term));
-    list = [...list].sort((a, b) =>
-      sort === "newest" ? b.createdAt - a.createdAt : a.createdAt - b.createdAt
-    );
+    const metric = (r: LaunchRecord, key: "marketCapUsd" | "volumeUsd") => stats[r.token]?.[key] ?? null;
+    list = [...list].sort((a, b) => {
+      switch (sort) {
+        case "oldest":
+          return a.createdAt - b.createdAt;
+        case "mcap":
+        case "volume": {
+          const key = sort === "mcap" ? "marketCapUsd" : "volumeUsd";
+          const av = metric(a, key);
+          const bv = metric(b, key);
+          // Highest first; unknown values sink to the bottom.
+          if (av == null && bv == null) return b.createdAt - a.createdAt;
+          if (av == null) return 1;
+          if (bv == null) return -1;
+          return bv - av;
+        }
+        case "newest":
+        default:
+          return b.createdAt - a.createdAt;
+      }
+    });
     return list;
-  }, [items, q, sort, ver]);
+  }, [items, q, sort, ver, stats]);
 
   return (
     <div className="mx-auto max-w-6xl px-4">
@@ -105,7 +123,7 @@ export default function HomePage() {
             />
           </div>
           <Segmented
-            options={[["newest", "Newest"], ["oldest", "Oldest"]]}
+            options={[["newest", "Newest"], ["oldest", "Oldest"], ["mcap", "Market cap"], ["volume", "Volume"]]}
             value={sort}
             onChange={(v) => setSort(v as Sort)}
           />
@@ -182,12 +200,12 @@ function Segmented({
   onChange: (v: string) => void;
 }) {
   return (
-    <div className="flex rounded-full border border-ink-line bg-white/60 p-1">
+    <div className="flex w-full rounded-full border border-ink-line bg-white/60 p-1 sm:w-auto">
       {options.map(([val, label]) => (
         <button
           key={val}
           onClick={() => onChange(val)}
-          className={`rounded-full px-3.5 py-1.5 text-sm font-semibold transition ${
+          className={`flex-1 whitespace-nowrap rounded-full px-2.5 py-1.5 text-xs font-semibold transition sm:flex-none sm:px-3.5 sm:text-sm ${
             value === val ? "bg-zinc-900 text-white" : "text-zinc-600 hover:text-zinc-900"
           }`}
         >
