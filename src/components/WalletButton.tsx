@@ -12,11 +12,11 @@ import {
 import { robinhoodChain } from "@/lib/chain";
 
 /**
- * Lightweight wallet button built directly on wagmi's `injected` connectors
- * (no RainbowKit — see src/app/providers.tsx). It lets the user pick an EVM
- * wallet explicitly (MetaMask) so the browser's default provider doesn't grab a
- * Solana wallet like Phantom, forces the Robinhood Chain network, and shows the
- * wallet's native balance.
+ * Wallet button — Robinhood Chain only. Built on wagmi's `injected` connectors
+ * (no RainbowKit; see src/app/providers.tsx). It lets the user pick an EVM
+ * wallet (MetaMask), and the moment a wallet connects it forces the Robinhood
+ * Chain network — automatically switching/adding it — so the app never operates
+ * on any other network. Also shows the wallet's native balance.
  *
  *  - variant "inline": text-style item for the desktop nav pill.
  *  - variant "solid":  compact pink button for mobile.
@@ -26,6 +26,7 @@ export function WalletButton({ variant = "solid" }: { variant?: "inline" | "soli
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const autoSwitched = useRef(false);
   useEffect(() => setMounted(true), []);
 
   const { address, isConnected } = useAccount();
@@ -40,6 +41,19 @@ export function WalletButton({ variant = "solid" }: { variant?: "inline" | "soli
     chainId: robinhoodChain.id,
     query: { enabled: Boolean(address) && isConnected },
   });
+
+  // The moment a wallet connects on the wrong network, force Robinhood Chain
+  // (prompts the wallet to switch/add it). Runs once per connection.
+  useEffect(() => {
+    if (!isConnected) {
+      autoSwitched.current = false;
+      return;
+    }
+    if (!onRobinhood && !autoSwitched.current) {
+      autoSwitched.current = true;
+      switchChain({ chainId: robinhoodChain.id });
+    }
+  }, [isConnected, onRobinhood, switchChain]);
 
   // Close the picker on outside click / Escape.
   useEffect(() => {
@@ -73,6 +87,7 @@ export function WalletButton({ variant = "solid" }: { variant?: "inline" | "soli
 
   function pick(which: "metaMask" | "generic") {
     setOpen(false);
+    autoSwitched.current = false;
     const hasProvider =
       typeof window !== "undefined" && typeof (window as { ethereum?: unknown }).ethereum !== "undefined";
     if (!hasProvider) {
@@ -82,7 +97,7 @@ export function WalletButton({ variant = "solid" }: { variant?: "inline" | "soli
       return;
     }
     // Request Robinhood Chain up front so the wallet switches/adds it during the
-    // connect prompt instead of staying on its default (e.g. Solana / mainnet).
+    // connect prompt.
     connect({ connector: which === "metaMask" ? metaMask : generic, chainId: robinhoodChain.id });
   }
 
@@ -95,7 +110,7 @@ export function WalletButton({ variant = "solid" }: { variant?: "inline" | "soli
         {open && (
           <div className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-2xl border border-ink-line bg-white/95 p-1.5 shadow-glow backdrop-blur">
             <p className="px-3 pb-1.5 pt-2 text-xs font-semibold text-zinc-400">
-              Connect an EVM wallet
+              Connect on {robinhoodChain.name}
             </p>
             <button
               type="button"
@@ -112,7 +127,7 @@ export function WalletButton({ variant = "solid" }: { variant?: "inline" | "soli
               <span className="text-lg">👛</span> Other browser wallet
             </button>
             <p className="px-3 pb-2 pt-1.5 text-[11px] leading-snug text-zinc-400">
-              {robinhoodChain.name} is an EVM network — Solana-only wallets won&apos;t work.
+              Requires an EVM wallet — you&apos;ll be switched to {robinhoodChain.name}.
             </p>
           </div>
         )}
@@ -120,7 +135,8 @@ export function WalletButton({ variant = "solid" }: { variant?: "inline" | "soli
     );
   }
 
-  // Connected but on the wrong network (e.g. wallet defaulted to Solana / mainnet).
+  // Connected but not yet on Robinhood Chain — the auto-switch above fires; this
+  // button is the manual fallback if the wallet rejected or is still pending.
   if (!onRobinhood) {
     return (
       <button
@@ -130,7 +146,7 @@ export function WalletButton({ variant = "solid" }: { variant?: "inline" | "soli
         className="rounded-full border border-amber-400/50 bg-amber-400/15 px-3.5 py-2 text-sm font-semibold text-amber-700 transition hover:bg-amber-400/25"
         title={`Switch to ${robinhoodChain.name}`}
       >
-        {switching ? "Switching…" : "Switch network"}
+        {switching ? "Switching…" : `Switch to ${robinhoodChain.name}`}
       </button>
     );
   }
