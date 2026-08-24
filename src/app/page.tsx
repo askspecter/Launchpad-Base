@@ -47,27 +47,8 @@ export default function HomePage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4">
-      {/* Compact hero */}
-      <section className="flex flex-col items-center pt-14 text-center sm:pt-20">
-        <span className="chip chip-accent animate-fade-up">
-          <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-pink shadow-[0_0_8px_#ec0e7b]" />
-          AI launchpad on {SITE.chain}
-        </span>
-        <h1 className="mt-5 max-w-3xl animate-fade-up text-balance font-display text-4xl font-bold leading-[1.05] tracking-tight text-zinc-900 sm:text-6xl">
-          One line in. <span className="grad-text">A token out.</span>
-        </h1>
-        <p className="mt-4 max-w-xl animate-fade-up text-balance text-sm text-zinc-600 sm:text-base">
-          {SITE.name} turns a single sentence into a complete, launch-ready token, then deploys it to
-          the <span className="font-semibold text-pink">{SITE.poweredBy}</span> launchpad. Non-custodial.
-        </p>
-        <div className="mt-6 flex animate-fade-up flex-col items-center gap-3 sm:flex-row">
-          <Link href="/create" className="btn-brand !px-7 !py-3.5 text-base">Launch a token →</Link>
-          <Link href="/analytics" className="btn-ghost !px-7 !py-3.5 text-base">View analytics</Link>
-        </div>
-      </section>
-
       {/* RWA marquee */}
-      <div className="marquee-mask mt-10 w-full overflow-hidden py-3">
+      <div className="marquee-mask mt-8 w-full overflow-hidden py-3">
         <div className="marquee-track gap-3">
           {[...RWA, ...RWA].map((s, i) => (
             <span key={i} className="chip flex items-center gap-2 whitespace-nowrap px-3 py-1.5 text-xs font-semibold">
