@@ -9,6 +9,7 @@ const RWA = ["ETH", "USDG", "NVDA", "AAPL", "TSLA", "HOOD", "COIN", "META", "AMZ
 
 interface LaunchRecord {
   token: string;
+  curve?: string;
   version: "v1" | "v2";
   name: string;
   symbol: string;
@@ -18,11 +19,17 @@ interface LaunchRecord {
   createdAt: number;
 }
 
+interface TokenStat {
+  marketCapUsd: number | null;
+  volumeUsd: number | null;
+}
+
 type Sort = "newest" | "oldest";
 type Ver = "all" | "v1" | "v2";
 
 export default function HomePage() {
   const [items, setItems] = useState<LaunchRecord[] | null>(null);
+  const [stats, setStats] = useState<Record<string, TokenStat>>({});
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<Sort>("newest");
   const [ver, setVer] = useState<Ver>("all");
@@ -33,6 +40,20 @@ export default function HomePage() {
       .then((d: { items?: LaunchRecord[] }) => setItems(d.items ?? []))
       .catch(() => setItems([]));
   }, []);
+
+  // Market cap + volume for the loaded tokens (cached server-side).
+  useEffect(() => {
+    if (!items || items.length === 0) return;
+    const tokens = items.slice(0, 24).map((i) => ({ token: i.token, curve: i.curve, version: i.version }));
+    fetch("/api/launches/stats", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ tokens }),
+    })
+      .then((r) => r.json())
+      .then((d: { stats?: Record<string, TokenStat> }) => setStats(d.stats ?? {}))
+      .catch(() => {});
+  }, [items]);
 
   const shown = useMemo(() => {
     let list = items ?? [];
@@ -133,6 +154,14 @@ export default function HomePage() {
                     <span className="font-mono text-xs text-pink">${it.symbol}</span>
                     <span className="text-xs text-zinc-500">{timeAgo(it.createdAt)}</span>
                   </div>
+                  <div className="mt-2 flex items-center justify-between gap-2 border-t border-ink-line pt-2">
+                    <span className="text-[11px] text-zinc-500">
+                      MC <span className="font-semibold text-zinc-800">{fmtUsdCompact(stats[it.token]?.marketCapUsd)}</span>
+                    </span>
+                    <span className="text-[11px] text-zinc-500">
+                      Vol <span className="font-semibold text-zinc-800">{fmtUsdCompact(stats[it.token]?.volumeUsd)}</span>
+                    </span>
+                  </div>
                 </div>
               </Link>
             ))}
@@ -167,6 +196,14 @@ function Segmented({
       ))}
     </div>
   );
+}
+
+/** Compact USD like $1.2K / $3.4M, or "—" when unknown. */
+function fmtUsdCompact(v: number | null | undefined): string {
+  if (v == null || !Number.isFinite(v)) return "—";
+  if (v === 0) return "$0";
+  if (v < 1000) return `$${v.toLocaleString("en-US", { maximumFractionDigits: v < 1 ? 4 : 2 })}`;
+  return `$${v.toLocaleString("en-US", { notation: "compact", maximumFractionDigits: 1 })}`;
 }
 
 function timeAgo(ts: number): string {
