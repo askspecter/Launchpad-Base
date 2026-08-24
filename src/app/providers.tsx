@@ -11,21 +11,25 @@ import {
   walletConnectWallet,
 } from "@rainbow-me/rainbowkit/wallets";
 import { robinhoodChain } from "@/lib/chain";
+import { WalletErrorBoundary } from "@/components/WalletErrorBoundary";
 
-// RainbowKit + wagmi. injectedWallet shows as "Browser Wallet".
-// Mobile wallets need NEXT_PUBLIC_WC_PROJECT_ID (free at cloud.reown.com).
+// WalletConnect / Rainbow need a real projectId (free at cloud.reown.com). If
+// NEXT_PUBLIC_WC_PROJECT_ID isn't set, we ship only injected + MetaMask so a
+// missing/placeholder projectId can't crash the wallet stack in the browser.
+const wcProjectId = process.env.NEXT_PUBLIC_WC_PROJECT_ID;
+const wallets = wcProjectId
+  ? [{ groupName: "Popular", wallets: [metaMaskWallet, injectedWallet, rainbowWallet, walletConnectWallet] }]
+  : [{ groupName: "Popular", wallets: [metaMaskWallet, injectedWallet] }];
+
 const wagmiConfig = getDefaultConfig({
   appName: "Pork",
-  projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID || "pork_missing_wc_project_id",
+  // getDefaultConfig requires a string; the WC-based wallets above are only
+  // included when a real id exists, so this placeholder is never used to init WC.
+  projectId: wcProjectId || "pork_no_walletconnect",
   chains: [robinhoodChain],
   transports: { [robinhoodChain.id]: http() },
   ssr: true,
-  wallets: [
-    {
-      groupName: "Popular",
-      wallets: [metaMaskWallet, injectedWallet, rainbowWallet, walletConnectWallet],
-    },
-  ],
+  wallets,
 });
 
 // Cinematic dark theme, keyed to Pork's logo pink.
@@ -61,19 +65,24 @@ export function Providers({ children }: { children: ReactNode }) {
 
   // Server + first client render: no wallet providers. Content still renders;
   // wallet-dependent components show their gated fallback via useWalletReady().
-  if (!mounted) {
-    return <WalletReadyContext.Provider value={false}>{children}</WalletReadyContext.Provider>;
-  }
+  const withoutWallet = (
+    <WalletReadyContext.Provider value={false}>{children}</WalletReadyContext.Provider>
+  );
+  if (!mounted) return withoutWallet;
 
+  // Client: mount the wallet stack, but if it throws, degrade gracefully to the
+  // no-wallet tree instead of blanking the page.
   return (
-    <WalletReadyContext.Provider value={true}>
-      <WagmiProvider config={wagmiConfig}>
-        <QueryClientProvider client={queryClient}>
-          <RainbowKitProvider theme={porkTheme} modalSize="compact">
-            {children}
-          </RainbowKitProvider>
-        </QueryClientProvider>
-      </WagmiProvider>
-    </WalletReadyContext.Provider>
+    <WalletErrorBoundary fallback={withoutWallet}>
+      <WalletReadyContext.Provider value={true}>
+        <WagmiProvider config={wagmiConfig}>
+          <QueryClientProvider client={queryClient}>
+            <RainbowKitProvider theme={porkTheme} modalSize="compact">
+              {children}
+            </RainbowKitProvider>
+          </QueryClientProvider>
+        </WagmiProvider>
+      </WalletReadyContext.Provider>
+    </WalletErrorBoundary>
   );
 }
