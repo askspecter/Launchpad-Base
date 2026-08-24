@@ -5,7 +5,6 @@ import { useState, type ReactNode } from "react";
 import { WagmiProvider, http } from "wagmi";
 import { RainbowKitProvider, getDefaultConfig, darkTheme } from "@rainbow-me/rainbowkit";
 import {
-  coinbaseWallet,
   injectedWallet,
   metaMaskWallet,
   rainbowWallet,
@@ -13,9 +12,10 @@ import {
 } from "@rainbow-me/rainbowkit/wallets";
 import { robinhoodChain } from "@/lib/chain";
 
-// Same straightforward setup Verbo uses. Full wallet list; MetaMask / Rainbow /
-// WalletConnect need a real WalletConnect projectId (free at cloud.reown.com)
-// via NEXT_PUBLIC_WC_PROJECT_ID. Coinbase + injected also work without one.
+// Exactly Verbo's wallet set (no Coinbase — its SDK touches @base-org/account /
+// @coinbase/cdp-sdk, which next.config stubs to `false`, and that crashes the
+// app on mobile Safari). MetaMask / Rainbow / WalletConnect need a real
+// WalletConnect projectId (free at cloud.reown.com) via NEXT_PUBLIC_WC_PROJECT_ID.
 const wagmiConfig = getDefaultConfig({
   appName: "Pork",
   projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID || "pork_missing_wc_project_id",
@@ -25,7 +25,7 @@ const wagmiConfig = getDefaultConfig({
   wallets: [
     {
       groupName: "Popular",
-      wallets: [injectedWallet, coinbaseWallet, metaMaskWallet, rainbowWallet, walletConnectWallet],
+      wallets: [metaMaskWallet, injectedWallet, rainbowWallet, walletConnectWallet],
     },
   ],
 });
