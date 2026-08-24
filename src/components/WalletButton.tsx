@@ -20,11 +20,9 @@ export function WalletButton({ variant = "solid" }: { variant?: "inline" | "soli
     : "btn-brand !px-4 !py-2";
 
   if (!ready) {
-    return (
-      <button className={connectCls} aria-hidden disabled>
-        Connect
-      </button>
-    );
+    // Not disabled: the wallet stack mounts a tick after hydration, and we never
+    // want the button to look/behave dead.
+    return <button className={connectCls}>Connect</button>;
   }
 
   return (

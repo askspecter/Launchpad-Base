@@ -20,6 +20,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
   themeColor: "#fff3fa",
 };
 
@@ -44,7 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="cinema-bg" aria-hidden />
         <div className="grain" aria-hidden />
         <Providers>
-          <div className="flex min-h-dvh flex-col">
+          <div className="flex min-h-dvh flex-col overflow-x-hidden">
             <SiteHeader />
             <main className="flex-1">{children}</main>
             <SiteFooter />

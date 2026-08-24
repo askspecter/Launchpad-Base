@@ -1,51 +1,74 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { SITE } from "@/lib/site";
 import { AssetLogo } from "@/components/AssetLogo";
+import { explorerToken } from "@/lib/chain";
 
 const RWA = ["ETH", "USDG", "NVDA", "AAPL", "TSLA", "HOOD", "COIN", "META", "AMZN", "MSFT", "GOOGL", "SPY"];
 
-const STEPS = [
-  { n: "01", t: "Pitch it in a line", d: "Type one sentence. Pork's AI drafts a name, ticker, logo, description, lore, a ready-to-post X thread, and meme prompts." },
-  { n: "02", t: "Pick the model", d: "v1 instant Uniswap V3 pool, or v2 bonding curve that graduates to V4. AI recommends, you decide." },
-  { n: "03", t: "Deploy to Pons", d: "One signed transaction from your own wallet. The token launches straight onto the Pons protocol." },
-];
+interface LaunchRecord {
+  token: string;
+  version: "v1" | "v2";
+  name: string;
+  symbol: string;
+  logo: string;
+  deployer: string;
+  txHash: string;
+  createdAt: number;
+}
+
+type Sort = "newest" | "oldest";
+type Ver = "all" | "v1" | "v2";
 
 export default function HomePage() {
+  const [items, setItems] = useState<LaunchRecord[] | null>(null);
+  const [q, setQ] = useState("");
+  const [sort, setSort] = useState<Sort>("newest");
+  const [ver, setVer] = useState<Ver>("all");
+
+  useEffect(() => {
+    fetch("/api/launches?limit=60")
+      .then((r) => r.json())
+      .then((d: { items?: LaunchRecord[] }) => setItems(d.items ?? []))
+      .catch(() => setItems([]));
+  }, []);
+
+  const shown = useMemo(() => {
+    let list = items ?? [];
+    if (ver !== "all") list = list.filter((i) => i.version === ver);
+    const term = q.trim().toLowerCase();
+    if (term) list = list.filter((i) => `${i.name} ${i.symbol}`.toLowerCase().includes(term));
+    list = [...list].sort((a, b) =>
+      sort === "newest" ? b.createdAt - a.createdAt : a.createdAt - b.createdAt
+    );
+    return list;
+  }, [items, q, sort, ver]);
+
   return (
     <div className="mx-auto max-w-6xl px-4">
-      {/* Hero */}
-      <section className="relative flex flex-col items-center pt-20 text-center sm:pt-28">
+      {/* Compact hero */}
+      <section className="flex flex-col items-center pt-14 text-center sm:pt-20">
         <span className="chip chip-accent animate-fade-up">
           <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-pink shadow-[0_0_8px_#ec0e7b]" />
           AI launchpad on {SITE.chain}
         </span>
-
-        <h1 className="mt-6 animate-fade-up font-display text-4xl font-bold leading-[1.05] tracking-tight text-zinc-900 sm:text-6xl md:text-7xl">
-          One line in.
-          <br />
-          <span className="grad-text">A token out.</span>
+        <h1 className="mt-5 max-w-3xl animate-fade-up text-balance font-display text-4xl font-bold leading-[1.05] tracking-tight text-zinc-900 sm:text-6xl">
+          One line in. <span className="grad-text">A token out.</span>
         </h1>
-
-        <p className="mt-6 max-w-xl animate-fade-up text-balance text-base text-zinc-600 sm:text-lg">
+        <p className="mt-4 max-w-xl animate-fade-up text-balance text-sm text-zinc-600 sm:text-base">
           {SITE.name} turns a single sentence into a complete, launch-ready token, then deploys it to
-          the <span className="font-semibold text-pink">{SITE.poweredBy}</span> launchpad. Non-custodial,
-          cinematic, and fast.
+          the <span className="font-semibold text-pink">{SITE.poweredBy}</span> launchpad. Non-custodial.
         </p>
-
-        <div className="mt-8 flex animate-fade-up flex-col items-center gap-3 sm:flex-row">
-          <Link href="/create" className="btn-brand !px-7 !py-3.5 text-base">
-            Launch a token →
-          </Link>
-          <Link href="/feed" className="btn-ghost !px-7 !py-3.5 text-base">
-            Watch the feed
-          </Link>
+        <div className="mt-6 flex animate-fade-up flex-col items-center gap-3 sm:flex-row">
+          <Link href="/create" className="btn-brand !px-7 !py-3.5 text-base">Launch a token →</Link>
+          <Link href="/analytics" className="btn-ghost !px-7 !py-3.5 text-base">View analytics</Link>
         </div>
-
-        <p className="mt-4 text-xs text-zinc-500">No sign-up. Your wallet signs every transaction.</p>
       </section>
 
-      {/* Marquee of quote assets */}
-      <div className="marquee-mask mt-16 overflow-hidden py-4">
+      {/* RWA marquee */}
+      <div className="marquee-mask mt-10 w-full overflow-hidden py-3">
         <div className="marquee-track gap-3">
           {[...RWA, ...RWA].map((s, i) => (
             <span key={i} className="chip flex items-center gap-2 whitespace-nowrap px-3 py-1.5 text-xs font-semibold">
@@ -56,64 +79,125 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* How it works */}
-      <section className="mt-16">
-        <div className="grad-rule mx-auto mb-10 h-px w-40" />
-        <div className="grid gap-4 sm:grid-cols-3">
-          {STEPS.map((s) => (
-            <div key={s.n} className="card card-hover p-6">
-              <div className="step-badge">{s.n}</div>
-              <h3 className="mt-4 font-display text-xl font-bold text-zinc-900">{s.t}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-zinc-600">{s.d}</p>
+      {/* Explore */}
+      <section className="mt-12 pb-8">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="font-display text-3xl font-bold text-zinc-900">Explore</h2>
+              <span className="chip">{items ? `${items.length} launched` : "…"}</span>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Model comparison */}
-      <section className="mt-16 grid gap-4 sm:grid-cols-2">
-        <div className="card p-6">
-          <div className="flex items-center justify-between">
-            <h3 className="font-display text-xl font-bold text-zinc-900">v1 · Instant Pool</h3>
-            <span className="chip">open</span>
+            <p className="mt-1 text-sm text-zinc-600">Tokens launched through {SITE.name} on {SITE.chain}.</p>
           </div>
-          <p className="mt-3 text-sm text-zinc-600">
-            One transaction deploys the token and a Uniswap V3 pool, locked immediately and quoted in
-            WETH. Tradable from block one. Anyone can launch.
-          </p>
-          <ul className="mt-4 space-y-1.5 text-sm text-zinc-700">
-            <li>· Fixed supply, 1% pool fee</li>
-            <li>· Flat 0.0005 ETH launch fee</li>
-            <li>· No whitelist</li>
-          </ul>
+          <Link href="/create" className="btn-brand !px-5 !py-2.5">+ Create</Link>
         </div>
-        <div className="card p-6 shadow-glow">
-          <div className="flex items-center justify-between">
-            <h3 className="font-display text-xl font-bold text-zinc-900">v2 · Bonding Curve</h3>
-            <span className="chip chip-accent">RWA pairs</span>
-          </div>
-          <p className="mt-3 text-sm text-zinc-600">
-            Fair launch on a bonding curve that graduates into a locked Uniswap V4 pool. Pair against
-            ETH or tokenized stocks. Creators are paid in ETH.
-          </p>
-          <ul className="mt-4 space-y-1.5 text-sm text-zinc-700">
-            <li>· Graduates to V4 automatically</li>
-            <li>· ETH / USDG / NVDA / AAPL / HOOD…</li>
-            <li>· Optional protocol buyback</li>
-          </ul>
-        </div>
-      </section>
 
-      {/* CTA */}
-      <section className="mt-16 overflow-hidden rounded-3xl border border-ink-line p-10 text-center shadow-card"
-        style={{ background: "radial-gradient(40rem 20rem at 50% -20%, rgba(236,14,123,0.16), transparent 70%)" }}>
-        <h2 className="font-display text-3xl font-bold text-zinc-900 sm:text-4xl">
-          Your next launch is <span className="grad-text">one sentence</span> away.
-        </h2>
-        <Link href="/create" className="btn-brand mt-6 inline-flex !px-8 !py-3.5 text-base">
-          Open the studio →
-        </Link>
+        {/* Controls */}
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">⌕</span>
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search tokens"
+              className="field !py-2.5 pl-9"
+            />
+          </div>
+          <Segmented
+            options={[["newest", "Newest"], ["oldest", "Oldest"]]}
+            value={sort}
+            onChange={(v) => setSort(v as Sort)}
+          />
+          <Segmented
+            options={[["all", "All"], ["v1", "v1"], ["v2", "v2"]]}
+            value={ver}
+            onChange={(v) => setVer(v as Ver)}
+          />
+        </div>
+
+        {/* Grid */}
+        {items === null ? (
+          <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="card aspect-[3/4] animate-pulse" />
+            ))}
+          </div>
+        ) : shown.length === 0 ? (
+          <div className="card mt-6 p-10 text-center">
+            <p className="text-lg font-semibold text-zinc-900">
+              {items.length === 0 ? "No launches yet." : "No tokens match your search."}
+            </p>
+            <p className="mt-2 text-sm text-zinc-600">Be the first — open the studio and ship a token.</p>
+            <Link href="/create" className="btn-brand mt-6 inline-flex">Launch a token →</Link>
+          </div>
+        ) : (
+          <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {shown.map((it) => (
+              <a
+                key={it.token}
+                href={explorerToken(it.token)}
+                target="_blank"
+                rel="noreferrer"
+                className="card card-hover overflow-hidden"
+              >
+                <div className="relative aspect-square bg-black/[0.03]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={it.logo || "/pork-logo.png"}
+                    alt={it.symbol}
+                    className="h-full w-full object-cover"
+                  />
+                  <span className="chip absolute left-2 top-2 bg-white/80">{it.version}</span>
+                </div>
+                <div className="p-3">
+                  <p className="truncate font-display font-bold text-zinc-900">{it.name}</p>
+                  <div className="mt-0.5 flex items-center justify-between">
+                    <span className="font-mono text-xs text-pink">${it.symbol}</span>
+                    <span className="text-xs text-zinc-500">{timeAgo(it.createdAt)}</span>
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );
+}
+
+function Segmented({
+  options,
+  value,
+  onChange,
+}: {
+  options: [string, string][];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div className="flex rounded-full border border-ink-line bg-white/60 p-1">
+      {options.map(([val, label]) => (
+        <button
+          key={val}
+          onClick={() => onChange(val)}
+          className={`rounded-full px-3.5 py-1.5 text-sm font-semibold transition ${
+            value === val ? "bg-zinc-900 text-white" : "text-zinc-600 hover:text-zinc-900"
+          }`}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function timeAgo(ts: number): string {
+  if (!ts) return "";
+  const s = Math.max(1, Math.floor((Date.now() - ts) / 1000));
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
 }

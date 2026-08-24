@@ -5,7 +5,6 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { WagmiProvider, http } from "wagmi";
 import { RainbowKitProvider, getDefaultConfig, darkTheme } from "@rainbow-me/rainbowkit";
 import {
-  coinbaseWallet,
   injectedWallet,
   metaMaskWallet,
   rainbowWallet,
@@ -14,19 +13,13 @@ import {
 import { robinhoodChain } from "@/lib/chain";
 import { WalletErrorBoundary } from "@/components/WalletErrorBoundary";
 
-// Coinbase + injected/MetaMask work without a WalletConnect projectId (Coinbase
-// also gives mobile users a working option). WalletConnect / Rainbow need a real
-// projectId (free at cloud.reown.com); we only add them when one is set so a
-// missing/placeholder id can't break the wallet stack.
+// injected/MetaMask work everywhere without extra SDKs. WalletConnect + Rainbow
+// (QR + mobile wallets) need a real projectId (free at cloud.reown.com); we only
+// add them when one is set so a missing/placeholder id can't break the stack.
 const wcProjectId = process.env.NEXT_PUBLIC_WC_PROJECT_ID;
 const wallets = wcProjectId
-  ? [
-      {
-        groupName: "Popular",
-        wallets: [metaMaskWallet, coinbaseWallet, injectedWallet, rainbowWallet, walletConnectWallet],
-      },
-    ]
-  : [{ groupName: "Popular", wallets: [metaMaskWallet, coinbaseWallet, injectedWallet] }];
+  ? [{ groupName: "Popular", wallets: [metaMaskWallet, injectedWallet, rainbowWallet, walletConnectWallet] }]
+  : [{ groupName: "Popular", wallets: [metaMaskWallet, injectedWallet] }];
 
 const wagmiConfig = getDefaultConfig({
   appName: "Pork",

@@ -55,7 +55,7 @@ export default function AnalyticsPage() {
           tokens created through {SITE.name}.
         </p>
         <p className="mt-2 text-xs text-zinc-500">
-          {data ? `Updated ${new Date(data.updatedAt).toLocaleString()}` : "Loading…"}
+          {data ? `Updated ${fmtEastern(data.updatedAt)} ET` : "Loading…"}
         </p>
 
         {/* Range toggle */}
@@ -184,6 +184,15 @@ function BarChart({ series, loading }: { series: { ts: number; count: number }[]
   );
 }
 
+function fmtEastern(ms: number): string {
+  return new Date(ms).toLocaleString("en-US", {
+    timeZone: "America/New_York",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
 function fmtCount(n: number | null | undefined): string {
   if (n === null || n === undefined) return "—";
   return Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(n);
