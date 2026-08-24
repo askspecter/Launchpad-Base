@@ -16,18 +16,20 @@ import { robinhoodChain } from "@/lib/chain";
 // @coinbase/cdp-sdk, which next.config stubs to `false`, and that crashes the
 // app on mobile Safari). MetaMask / Rainbow / WalletConnect need a real
 // WalletConnect projectId (free at cloud.reown.com) via NEXT_PUBLIC_WC_PROJECT_ID.
+const wcProjectId = process.env.NEXT_PUBLIC_WC_PROJECT_ID;
 const wagmiConfig = getDefaultConfig({
   appName: "Pork",
-  projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID || "pork_missing_wc_project_id",
+  projectId: wcProjectId || "pork_missing_wc_project_id",
   chains: [robinhoodChain],
   transports: { [robinhoodChain.id]: http() },
   ssr: true,
-  wallets: [
-    {
-      groupName: "Popular",
-      wallets: [metaMaskWallet, injectedWallet, rainbowWallet, walletConnectWallet],
-    },
-  ],
+  // WalletConnect/Rainbow build a WC connector that throws ("uid") during
+  // prerender when the projectId is a placeholder, so they're only added when a
+  // real projectId is set. On the deployed site (projectId set) the list is the
+  // full Verbo set; locally/without it, just injected.
+  wallets: wcProjectId
+    ? [{ groupName: "Popular", wallets: [metaMaskWallet, injectedWallet, rainbowWallet, walletConnectWallet] }]
+    : [{ groupName: "Popular", wallets: [injectedWallet] }],
 });
 
 const porkTheme = darkTheme({
