@@ -126,7 +126,7 @@ export function DeployButton({ input, disabled }: { input: LaunchInput; disabled
       </button>
       {!ready && <p className="text-xs text-zinc-500">Deploy for {input.version} is currently unavailable.</p>}
       {!isConnected && ready && <p className="text-xs text-zinc-500">Connect your wallet to deploy.</p>}
-      {error && <p className="whitespace-pre-wrap text-xs text-red-400">{error}</p>}
+      {error && <p className="whitespace-pre-wrap text-xs text-red-600">{error}</p>}
     </div>
   );
 }

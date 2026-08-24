@@ -27,13 +27,13 @@ export function VersionSelector({
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="font-display text-base font-bold text-white">{info.label}</span>
+              <span className="font-display text-base font-bold text-zinc-900">{info.label}</span>
               <span className="flex gap-1.5">
                 {isRecommended && <span className="chip chip-accent">AI pick</span>}
                 {!info.ready && <span className="chip text-ember">deploy off</span>}
               </span>
             </div>
-            <p className="mt-2 text-sm text-zinc-300">{info.liquidity}</p>
+            <p className="mt-2 text-sm text-zinc-700">{info.liquidity}</p>
             <p className="mt-2 text-xs text-zinc-500">{info.note}</p>
             <div className="mt-3 flex flex-wrap gap-1.5">
               {info.quoteAssets.map((q) => (

@@ -185,10 +185,10 @@ export function LaunchStudio() {
     <div className="mx-auto max-w-3xl space-y-5 px-4 py-10">
       <div className="animate-fade-up">
         <p className="eyebrow">The studio</p>
-        <h1 className="mt-2 font-display text-3xl font-bold text-white sm:text-4xl">
+        <h1 className="mt-2 font-display text-3xl font-bold text-zinc-900 sm:text-4xl">
           Type it. <span className="grad-text">Launch it.</span>
         </h1>
-        <p className="mt-2 max-w-xl text-sm text-zinc-400">
+        <p className="mt-2 max-w-xl text-sm text-zinc-600">
           One sentence becomes a full launch package. Edit anything, pick the model, and deploy to
           Pons, all signed by your own wallet.
         </p>
@@ -211,7 +211,7 @@ export function LaunchStudio() {
             {loading ? "Rolling…" : "Generate"}
           </button>
         </div>
-        {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
+        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
       </Step>
 
       {loading && !result && <CookingReel />}
@@ -244,7 +244,7 @@ export function LaunchStudio() {
                       onClick={() => regenImage(s)}
                       disabled={imageBusy}
                       className={`rounded-md px-2 py-1 font-semibold capitalize transition ${
-                        imageStyle === s ? "bg-pink text-white" : "text-zinc-400 hover:text-white"
+                        imageStyle === s ? "bg-pink text-white" : "text-zinc-600 hover:text-zinc-900"
                       }`}
                       title={s === "photo" ? "Generate a photorealistic image" : "Generate an icon logo"}
                     >
@@ -285,8 +285,8 @@ export function LaunchStudio() {
                 />
               </div>
             </div>
-            {imageError && <p className="mt-1 text-xs text-red-400">{imageError}</p>}
-            {uploadError && <p className="mt-1 text-xs text-red-400">{uploadError}</p>}
+            {imageError && <p className="mt-1 text-xs text-red-600">{imageError}</p>}
+            {uploadError && <p className="mt-1 text-xs text-red-600">{uploadError}</p>}
 
             <div className="mt-3">
               <Field label="Description" value={description} onChange={setDescription} textarea />
@@ -309,14 +309,14 @@ export function LaunchStudio() {
             <Reveal title={`X thread · ${result.package.xThread.length} posts`}>
               <ol className="list-decimal space-y-2 pl-5">
                 {result.package.xThread.map((t, i) => (
-                  <li key={i} className="text-zinc-300">{t}</li>
+                  <li key={i} className="text-zinc-700">{t}</li>
                 ))}
               </ol>
             </Reveal>
             <Reveal title={`Meme prompts · ${result.package.memePrompts.length}`}>
               <ul className="list-disc space-y-1 pl-5">
                 {result.package.memePrompts.map((m, i) => (
-                  <li key={i} className="text-zinc-400">{m}</li>
+                  <li key={i} className="text-zinc-600">{m}</li>
                 ))}
               </ul>
             </Reveal>
@@ -333,7 +333,7 @@ export function LaunchStudio() {
             />
 
             {version === "v2" && (
-              <div className="mt-4 space-y-4 rounded-xl border border-ink-line bg-black/20 p-4">
+              <div className="mt-4 space-y-4 rounded-xl border border-ink-line bg-white/60 p-4">
                 {!isConnected && (
                   <p className="text-xs text-zinc-500">Connect your wallet to load v2 options from chain.</p>
                 )}
@@ -341,17 +341,17 @@ export function LaunchStudio() {
 
                 {v2opts && (
                   <>
-                    <p className="text-xs text-zinc-400">
+                    <p className="text-xs text-zinc-600">
                       Launch fee:{" "}
-                      <span className="font-mono text-white">{formatEther(BigInt(v2opts.launchFee))} ETH</span>
+                      <span className="font-mono text-zinc-900">{formatEther(BigInt(v2opts.launchFee))} ETH</span>
                     </p>
 
                     {v2opts.configs.length > 0 && (
                       <div>
-                        <label className="text-sm text-zinc-300">Launch config</label>
+                        <label className="text-sm text-zinc-700">Launch config</label>
                         <div className="mt-2 space-y-1.5">
                           {v2opts.configs.map((c) => (
-                            <label key={c.id} className="flex cursor-pointer items-center gap-2 text-xs text-zinc-400">
+                            <label key={c.id} className="flex cursor-pointer items-center gap-2 text-xs text-zinc-600">
                               <input
                                 type="radio"
                                 name="cfg"
@@ -368,7 +368,7 @@ export function LaunchStudio() {
                     )}
 
                     <div>
-                      <label className="text-sm text-zinc-300">Paired asset</label>
+                      <label className="text-sm text-zinc-700">Paired asset</label>
                       <div className="mt-2">
                         <QuoteAssetSelect
                           assets={v2opts.quoteAssets}
@@ -382,7 +382,7 @@ export function LaunchStudio() {
                       </p>
                     </div>
 
-                    <label className="flex cursor-pointer items-center gap-2 text-sm text-zinc-300">
+                    <label className="flex cursor-pointer items-center gap-2 text-sm text-zinc-700">
                       <input
                         type="checkbox"
                         className="accent-rose"
@@ -402,13 +402,13 @@ export function LaunchStudio() {
             {isConnected && (
               <div className="mb-3 flex items-center justify-between rounded-xl border border-ink-line bg-black/30 px-3 py-2 text-xs">
                 <span className="text-zinc-500">Wallet balance</span>
-                <span className="font-mono text-white">
+                <span className="font-mono text-zinc-900">
                   {balance ? `${Number(balance.formatted).toFixed(4)} ${balance.symbol}` : "…"}
                 </span>
               </div>
             )}
 
-            <label className="mb-3 block text-sm text-zinc-300">
+            <label className="mb-3 block text-sm text-zinc-700">
               Dev buy (optional)
               <div className="mt-1 flex items-center gap-2">
                 <input
@@ -416,7 +416,7 @@ export function LaunchStudio() {
                   onChange={(e) => setInitialBuyEth(e.target.value.replace(/[^0-9.]/g, ""))}
                   placeholder="0.0"
                   inputMode="decimal"
-                  className="w-32 rounded-xl border border-ink-line bg-black/40 px-3 py-2 font-mono text-sm outline-none focus:border-rose/60"
+                  className="w-32 rounded-xl border border-ink-line bg-white/70 px-3 py-2 font-mono text-sm outline-none focus:border-rose/60"
                 />
                 <span className="text-xs text-zinc-500">ETH — buy your own token at launch</span>
               </div>
@@ -450,7 +450,7 @@ function Step({
     <section className={`card p-5 ${className}`}>
       <div className="mb-4 flex items-center gap-3">
         <span className="step-badge">{n}</span>
-        <h2 className="font-display text-lg font-bold text-white">{title}</h2>
+        <h2 className="font-display text-lg font-bold text-zinc-900">{title}</h2>
       </div>
       {children}
     </section>
@@ -472,7 +472,7 @@ function Field({
   textarea?: boolean;
   placeholder?: string;
 }) {
-  const cls = `mt-1 w-full rounded-xl border border-ink-line bg-black/40 px-3 py-2 text-sm text-zinc-100 outline-none transition focus:border-rose/60 ${
+  const cls = `mt-1 w-full rounded-xl border border-ink-line bg-white/70 px-3 py-2 text-sm text-zinc-900 outline-none transition focus:border-rose/60 ${
     mono ? "font-mono" : ""
   }`;
   return (
@@ -489,11 +489,11 @@ function Field({
 
 function Reveal({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <details className="mt-3 rounded-xl border border-ink-line bg-black/20 p-3">
-      <summary className="cursor-pointer select-none text-sm text-zinc-300 transition hover:text-white">
+    <details className="mt-3 rounded-xl border border-ink-line bg-white/60 p-3">
+      <summary className="cursor-pointer select-none text-sm text-zinc-700 transition hover:text-zinc-900">
         {title}
       </summary>
-      <div className="mt-2 whitespace-pre-wrap text-sm text-zinc-300">{children}</div>
+      <div className="mt-2 whitespace-pre-wrap text-sm text-zinc-700">{children}</div>
     </details>
   );
 }
@@ -513,18 +513,18 @@ function CookingReel() {
     <section className="card overflow-hidden p-5">
       <div className="mb-4 flex items-center gap-3">
         <span className="step-badge animate-glow-pulse">✦</span>
-        <h2 className="font-display text-lg font-bold text-white">Rolling the reel…</h2>
+        <h2 className="font-display text-lg font-bold text-zinc-900">Rolling the reel…</h2>
       </div>
 
-      <div className="relative h-2 w-full overflow-hidden rounded-full bg-white/[0.06]">
+      <div className="relative h-2 w-full overflow-hidden rounded-full bg-black/[0.05]">
         <div
           className="h-full rounded-full transition-[width] duration-500"
-          style={{ width: `${pct}%`, background: "linear-gradient(90deg,#ff3d7f,#ff8a3d)" }}
+          style={{ width: `${pct}%`, background: "linear-gradient(90deg,#ff5fa5,#ec0e7b)" }}
         />
       </div>
       <div className="mt-3 flex items-center justify-between">
-        <p className="animate-pulse text-xs text-zinc-400">{label}…</p>
-        <span className="font-mono text-sm font-bold text-white">{pct}%</span>
+        <p className="animate-pulse text-xs text-zinc-600">{label}…</p>
+        <span className="font-mono text-sm font-bold text-zinc-900">{pct}%</span>
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-6">
@@ -533,7 +533,7 @@ function CookingReel() {
           return (
             <div
               key={s}
-              className={`h-1.5 rounded-full transition ${done ? "bg-rose" : "bg-white/[0.08]"}`}
+              className={`h-1.5 rounded-full transition ${done ? "bg-pink" : "bg-black/[0.1]"}`}
               title={s}
             />
           );

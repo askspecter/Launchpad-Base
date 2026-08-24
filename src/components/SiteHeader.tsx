@@ -13,7 +13,7 @@ export function SiteHeader() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5">
         <Link href="/" className="group flex items-center gap-2.5">
           <Logo className="h-8 w-8 transition group-hover:scale-105" />
-          <span className="font-display text-xl font-bold tracking-tight text-white">
+          <span className="font-display text-xl font-bold tracking-tight text-zinc-900">
             {SITE.name}
           </span>
           <span className="hidden rounded-full border border-ink-line px-2 py-0.5 text-[10px] font-medium text-zinc-500 sm:inline">
@@ -29,7 +29,7 @@ export function SiteHeader() {
                 key={item.href}
                 href={item.href}
                 className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
-                  active ? "text-white" : "text-zinc-400 hover:text-white"
+                  active ? "text-zinc-900" : "text-zinc-600 hover:text-zinc-900"
                 }`}
               >
                 {item.label}

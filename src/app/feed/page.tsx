@@ -36,13 +36,13 @@ export default function FeedPage() {
     <div className="mx-auto max-w-6xl px-4 py-12">
       <div className="animate-fade-up">
         <p className="eyebrow">Live</p>
-        <h1 className="mt-2 font-display text-4xl font-bold text-white">The feed</h1>
-        <p className="mt-2 max-w-xl text-sm text-zinc-400">
+        <h1 className="mt-2 font-display text-4xl font-bold text-zinc-900">The feed</h1>
+        <p className="mt-2 max-w-xl text-sm text-zinc-600">
           Tokens launched through Pork, newest first. Every one deployed straight to Pons.
         </p>
       </div>
 
-      {error && <p className="mt-8 text-sm text-red-400">{error}</p>}
+      {error && <p className="mt-8 text-sm text-red-600">{error}</p>}
 
       {items === null && !error && (
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -54,8 +54,8 @@ export default function FeedPage() {
 
       {items && items.length === 0 && !error && (
         <div className="card mt-8 p-10 text-center">
-          <p className="text-lg font-semibold text-white">No launches yet.</p>
-          <p className="mt-2 text-sm text-zinc-400">
+          <p className="text-lg font-semibold text-zinc-900">No launches yet.</p>
+          <p className="mt-2 text-sm text-zinc-600">
             Be the first — open the studio and ship a token.
           </p>
           <a href="/create" className="btn-brand mt-6 inline-flex">Launch a token →</a>
@@ -74,7 +74,7 @@ export default function FeedPage() {
                   className="h-12 w-12 rounded-xl border border-ink-line object-cover"
                 />
                 <div className="min-w-0">
-                  <p className="truncate font-display font-bold text-white">{it.name}</p>
+                  <p className="truncate font-display font-bold text-zinc-900">{it.name}</p>
                   <p className="font-mono text-xs text-zinc-500">${it.symbol}</p>
                 </div>
                 <span className="chip ml-auto">{it.version}</span>

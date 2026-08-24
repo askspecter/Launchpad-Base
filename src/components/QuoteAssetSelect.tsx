@@ -39,10 +39,10 @@ export function QuoteAssetSelect({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-3 rounded-xl border border-ink-line bg-black/40 px-3 py-2.5 text-left transition hover:border-white/25"
+        className="flex w-full items-center gap-3 rounded-xl border border-ink-line bg-white/70 px-3 py-2.5 text-left transition hover:border-black/15"
       >
         {selected && <Badge symbol={selected.symbol} />}
-        <span className="font-bold text-white">{selected?.symbol}</span>
+        <span className="font-bold text-zinc-900">{selected?.symbol}</span>
         <span className="truncate text-xs text-zinc-500">{selected?.name}</span>
         <span className="ml-auto text-xs text-zinc-500">{open ? "▲" : "▼"}</span>
       </button>
@@ -60,7 +60,7 @@ export function QuoteAssetSelect({
                   setOpen(false);
                 }}
                 className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition ${
-                  active ? "bg-rose/15 text-white" : "text-zinc-300 hover:bg-white/[0.06]"
+                  active ? "bg-rose/15 text-zinc-900" : "text-zinc-700 hover:bg-black/[0.05]"
                 }`}
               >
                 <Badge symbol={a.symbol} />
@@ -77,7 +77,7 @@ export function QuoteAssetSelect({
 
 function Badge({ symbol }: { symbol: string }) {
   return (
-    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-ink-line bg-white/[0.04] text-[9px] font-black text-zinc-300">
+    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-ink-line bg-black/[0.04] text-[9px] font-black text-zinc-700">
       {symbol.slice(0, 2)}
     </span>
   );

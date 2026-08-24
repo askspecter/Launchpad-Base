@@ -3,13 +3,13 @@
 @tailwind utilities;
 
 /* ─────────────────────────────────────────────────────────────
-   Pork — cinematic base
+   Pork — light "Prism" theme (bright pink gradient, glass cards)
    ───────────────────────────────────────────────────────────── */
 :root {
   --font-display: "Space Grotesk", "Inter", "Segoe UI", system-ui, -apple-system, "DejaVu Sans", Arial, sans-serif;
   --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, "DejaVu Sans", Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "DejaVu Sans Mono", monospace;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 @layer base {
@@ -17,44 +17,41 @@
     scroll-behavior: smooth;
   }
   body {
-    @apply bg-ink-900 text-zinc-200 antialiased;
+    @apply text-zinc-800 antialiased;
     font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-    background-color: #0a0a0c;
+    background-color: #fff3fa;
+    color: #2a0f1e;
     min-height: 100dvh;
     overflow-x: hidden;
   }
   ::selection {
-    background: rgba(236, 14, 123, 0.4);
-    color: #fff;
+    background: rgba(236, 14, 123, 0.22);
+    color: #2a0f1e;
   }
   h1, h2, h3 {
     font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
     letter-spacing: -0.02em;
+    color: #1a0a14;
   }
   input, textarea, select {
     font-family: inherit;
   }
 }
 
-/* Cinematic backdrop: layered radial glows + fine film grain, fixed. */
+/* Bright Prism backdrop: pink gradient mesh, fixed. */
 .cinema-bg {
   position: fixed;
   inset: 0;
   z-index: -2;
   background:
-    radial-gradient(60rem 60rem at 12% -10%, rgba(236, 14, 123, 0.20), transparent 60%),
-    radial-gradient(50rem 50rem at 100% 0%, rgba(255, 95, 165, 0.12), transparent 55%),
-    radial-gradient(70rem 40rem at 50% 120%, rgba(236, 14, 123, 0.10), transparent 60%),
-    #0a0a0c;
+    radial-gradient(52rem 40rem at 8% -5%, #ffd9ec, transparent 55%),
+    radial-gradient(56rem 46rem at 96% 8%, #ff8ac2, transparent 52%),
+    radial-gradient(60rem 52rem at 55% 122%, rgba(236, 14, 123, 0.85), transparent 55%),
+    #fff3fa;
 }
+/* Grain is distracting on a light theme — keep it off. */
 .grain {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0.06;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  display: none;
 }
 
 /* Signature gradient text + accents */
@@ -65,53 +62,83 @@
   color: transparent;
 }
 .grad-rule {
-  background: linear-gradient(90deg, transparent, rgba(236, 14, 123, 0.6), transparent);
+  background: linear-gradient(90deg, transparent, rgba(236, 14, 123, 0.5), transparent);
 }
 
 @layer components {
-  /* Glass card */
+  /* Frosted glass card */
   .card {
-    @apply rounded-2xl border border-ink-line bg-white/[0.03] backdrop-blur-xl;
-    box-shadow: 0 30px 80px -40px rgba(0, 0, 0, 0.9);
+    @apply rounded-2xl border;
+    border-color: rgba(0, 0, 0, 0.06);
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 30px 70px -40px rgba(236, 14, 123, 0.45);
   }
   .card-hover {
     @apply transition duration-300;
   }
   .card-hover:hover {
-    @apply -translate-y-1 border-white/20 bg-white/[0.05];
+    @apply -translate-y-1;
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(0, 0, 0, 0.12);
   }
 
-  /* Buttons */
+  /* Primary = pink gradient */
   .btn-brand {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white transition duration-200 disabled:cursor-not-allowed disabled:opacity-40;
     background: linear-gradient(100deg, #ff5fa5, #ec0e7b 55%, #b00a5e);
-    box-shadow: 0 10px 30px -10px rgba(236, 14, 123, 0.6);
+    box-shadow: 0 12px 30px -10px rgba(236, 14, 123, 0.55);
   }
   .btn-brand:hover:not(:disabled) {
-    filter: brightness(1.08);
-    box-shadow: 0 14px 40px -10px rgba(236, 14, 123, 0.85);
+    filter: brightness(1.05);
+    box-shadow: 0 16px 40px -10px rgba(236, 14, 123, 0.7);
     transform: translateY(-1px);
   }
+
+  /* Secondary = dark solid (Prism-style) */
+  .btn-dark {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white transition duration-200 disabled:cursor-not-allowed disabled:opacity-40;
+    background: #12060d;
+  }
+  .btn-dark:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background: #1f0b17;
+  }
+
+  /* Ghost = light outline */
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-ink-line bg-white/[0.02] px-4 py-2.5 text-sm font-medium text-zinc-300 transition duration-200 hover:border-white/25 hover:bg-white/[0.06] hover:text-white disabled:cursor-not-allowed disabled:opacity-40;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-zinc-700 transition duration-200 disabled:cursor-not-allowed disabled:opacity-40;
+    border: 1px solid rgba(0, 0, 0, 0.10);
+    background: rgba(255, 255, 255, 0.7);
+  }
+  .btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.2);
+    color: #1a0a14;
   }
 
   /* Chip / pill */
   .chip {
-    @apply inline-flex items-center rounded-full border border-ink-line bg-white/[0.03] px-2.5 py-0.5 text-[11px] font-medium text-zinc-400;
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium text-zinc-600;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.6);
   }
   .chip-accent {
-    @apply border-rose/40 text-rose;
+    @apply text-pink;
+    border-color: rgba(236, 14, 123, 0.35);
     background: rgba(236, 14, 123, 0.08);
   }
 
   /* Form field */
   .field {
-    @apply w-full rounded-xl border border-ink-line bg-black/40 px-4 py-3 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600;
+    @apply w-full rounded-xl px-4 py-3 text-sm outline-none transition placeholder:text-zinc-400;
+    color: #1a0a14;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.75);
   }
   .field:focus {
-    @apply border-rose/60;
-    box-shadow: 0 0 0 3px rgba(236, 14, 123, 0.12);
+    border-color: rgba(236, 14, 123, 0.6);
+    box-shadow: 0 0 0 3px rgba(236, 14, 123, 0.14);
   }
 
   /* Section eyebrow label */
@@ -121,7 +148,9 @@
 
   /* Step number badge */
   .step-badge {
-    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-ink-line bg-white/[0.04] font-mono text-sm font-bold text-rose;
+    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-mono text-sm font-bold text-pink;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.7);
   }
 }
 
@@ -138,7 +167,7 @@
 
 /* Thin scrollbar inside dropdowns */
 .thin-scroll::-webkit-scrollbar { width: 8px; }
-.thin-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 8px; }
+.thin-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 8px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; }

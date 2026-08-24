@@ -9,13 +9,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Pure black/white canvas — no warm tint.
+        // Light "Prism" surfaces (repurposed ink.* so existing utilities flip).
         ink: {
-          950: "#050506",
-          900: "#0a0a0c",
-          800: "#121216",
-          700: "#1a1a20",
-          line: "rgba(255,255,255,0.08)",
+          950: "#ffffff",
+          900: "#fff3fa",
+          800: "#ffffff",
+          700: "#ffe3f1",
+          line: "rgba(0,0,0,0.08)",
         },
         // Brand pink, sampled from the Pork ribbon mark.
         pink: {
