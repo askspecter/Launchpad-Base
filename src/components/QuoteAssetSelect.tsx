@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { AssetLogo } from "./AssetLogo";
 
 export interface QuoteAsset {
   asset: string;
@@ -41,7 +42,7 @@ export function QuoteAssetSelect({
         onClick={() => setOpen((o) => !o)}
         className="flex w-full items-center gap-3 rounded-xl border border-ink-line bg-white/70 px-3 py-2.5 text-left transition hover:border-black/15"
       >
-        {selected && <Badge symbol={selected.symbol} />}
+        {selected && <AssetLogo symbol={selected.symbol} size={24} />}
         <span className="font-bold text-zinc-900">{selected?.symbol}</span>
         <span className="truncate text-xs text-zinc-500">{selected?.name}</span>
         <span className="ml-auto text-xs text-zinc-500">{open ? "▲" : "▼"}</span>
@@ -63,7 +64,7 @@ export function QuoteAssetSelect({
                   active ? "bg-rose/15 text-zinc-900" : "text-zinc-700 hover:bg-black/[0.05]"
                 }`}
               >
-                <Badge symbol={a.symbol} />
+                <AssetLogo symbol={a.symbol} size={24} />
                 <span className="font-bold">{a.symbol}</span>
                 <span className="ml-auto truncate text-xs text-zinc-500">{a.name}</span>
               </button>
@@ -72,13 +73,5 @@ export function QuoteAssetSelect({
         </div>
       )}
     </div>
-  );
-}
-
-function Badge({ symbol }: { symbol: string }) {
-  return (
-    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-ink-line bg-black/[0.04] text-[9px] font-black text-zinc-700">
-      {symbol.slice(0, 2)}
-    </span>
   );
 }

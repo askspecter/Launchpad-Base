@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SITE } from "@/lib/site";
+import { AssetLogo } from "@/components/AssetLogo";
 
 const RWA = ["ETH", "USDG", "NVDA", "AAPL", "TSLA", "HOOD", "COIN", "META", "AMZN", "MSFT", "GOOGL", "SPY"];
 
@@ -47,7 +48,8 @@ export default function HomePage() {
       <div className="marquee-mask mt-16 overflow-hidden py-4">
         <div className="marquee-track gap-3">
           {[...RWA, ...RWA].map((s, i) => (
-            <span key={i} className="chip whitespace-nowrap px-3 py-1 text-xs">
+            <span key={i} className="chip flex items-center gap-2 whitespace-nowrap px-3 py-1.5 text-xs font-semibold">
+              <AssetLogo symbol={s} size={18} />
               {s}
             </span>
           ))}

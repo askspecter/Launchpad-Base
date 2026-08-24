@@ -18,7 +18,7 @@ export function SiteHeader() {
         {/* Brand */}
         <Link href="/" className="group flex shrink-0 items-center gap-2.5">
           <Logo className="h-8 w-8 transition group-hover:scale-105" />
-          <span className="font-display text-xl font-bold tracking-tight text-zinc-900">{SITE.name}</span>
+          <span className="wordmark text-lg text-zinc-900">{SITE.name}</span>
           <span className="hidden rounded-full border border-ink-line px-2 py-0.5 text-[10px] font-medium text-zinc-500 sm:inline">
             on {SITE.poweredBy}
           </span>

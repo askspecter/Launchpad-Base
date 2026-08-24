@@ -25,7 +25,7 @@ export function SiteFooter() {
           <div className="max-w-sm">
             <div className="flex items-center gap-2">
               <Logo className="h-7 w-7" />
-              <span className="font-display text-xl font-bold text-zinc-900">{SITE.name}</span>
+              <span className="wordmark text-xl text-zinc-900">{SITE.name}</span>
             </div>
             <p className="mt-4 text-sm leading-relaxed text-zinc-500">
               Launch and explore AI-generated tokens on {SITE.chain}. Your wallet submits every

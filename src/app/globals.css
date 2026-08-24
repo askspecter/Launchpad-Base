@@ -9,7 +9,16 @@
   --font-display: "Space Grotesk", "Inter", "Segoe UI", system-ui, -apple-system, "DejaVu Sans", Arial, sans-serif;
   --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, "DejaVu Sans", Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "DejaVu Sans Mono", monospace;
+  --font-logo: "Orbitron", "Space Grotesk", var(--font-display);
   color-scheme: light;
+}
+
+/* Techno wordmark for the PORK logotype */
+.wordmark {
+  font-family: var(--font-logo);
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 0.04em;
 }
 
 @layer base {
