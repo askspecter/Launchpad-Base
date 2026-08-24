@@ -8,7 +8,12 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   if (!kv) return new Response("Storage not configured", { status: 503 });
 
   const id = params.id.replace(/[^a-zA-Z0-9]/g, "");
-  const dataUrl = await kv.get<string>(`img:${id}`);
+  let dataUrl: string | null = null;
+  try {
+    dataUrl = await kv.get<string>(`img:${id}`);
+  } catch {
+    return new Response("Storage error", { status: 502 });
+  }
   if (!dataUrl) return new Response("Not found", { status: 404 });
 
   const m = /^data:([^;]+);base64,(.+)$/s.exec(dataUrl);

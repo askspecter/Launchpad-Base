@@ -31,13 +31,25 @@ export async function POST(req: Request) {
   if (!m) {
     return NextResponse.json({ error: "Expected a base64 image data URL." }, { status: 400 });
   }
-  const bytes = Math.floor((m[2].length * 3) / 4);
-  if (bytes > 1_500_000) {
-    return NextResponse.json({ error: "Image too large (max ~1.5MB after downscale)." }, { status: 413 });
+  // Keep well under Upstash's ~1MB REST request cap (the base64 string is larger
+  // than the decoded bytes; the client already compresses to fit).
+  if (dataUrl.length > 950_000) {
+    return NextResponse.json(
+      { error: "Image too large after compression — try a smaller or simpler image." },
+      { status: 413 }
+    );
   }
 
   const id = (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}${Math.random()}`).replace(/-/g, "");
-  await kv.set(`img:${id}`, dataUrl);
+  try {
+    await kv.set(`img:${id}`, dataUrl);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Storage write failed.";
+    return NextResponse.json(
+      { error: `Could not save the image to storage: ${message}` },
+      { status: 502 }
+    );
+  }
 
   return NextResponse.json({ id, path: `/api/img/${id}` });
 }
