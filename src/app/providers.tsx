@@ -88,7 +88,9 @@ const wagmiConfig = createConfig({
   multiInjectedProviderDiscovery: false,
   ssr: true,
   storage: createStorage({
-    key: "pork.wagmi.v3",
+    // Bumped key wipes any stale connector state (e.g. a wallet that connected
+    // on the wrong namespace) so the next connect starts clean.
+    key: "pork.wagmi.v4",
     storage: typeof window !== "undefined" ? window.localStorage : noopStorage,
   }),
 });
@@ -96,7 +98,11 @@ const wagmiConfig = createConfig({
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
   return (
-    <WagmiProvider config={wagmiConfig}>
+    // reconnectOnMount=false: never touch the wallet on page load. Multi-chain
+    // in-app browsers (Bitget/OKX) pop a connect sheet — defaulting to Solana —
+    // the instant a dApp reads the provider on mount. Nothing accesses the
+    // wallet until the user explicitly clicks Connect and picks an EVM wallet.
+    <WagmiProvider config={wagmiConfig} reconnectOnMount={false}>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </WagmiProvider>
   );
