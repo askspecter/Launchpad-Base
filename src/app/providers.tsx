@@ -30,9 +30,11 @@ const wagmiConfig = createConfig({
   chains: [robinhoodChain],
   transports: { [robinhoodChain.id]: http() },
   // Two connectors so the user can pick an EVM wallet explicitly instead of the
-  // browser's default provider grabbing a Solana wallet (e.g. Phantom):
+  // browser's default provider being used blindly:
   //   [0] MetaMask, targeted directly (EVM, supports adding Robinhood Chain)
   //   [1] any generic injected wallet (fallback)
+  // The app is Robinhood-Chain-only; the wallet button forces that network on
+  // connect.
   connectors: [
     injected({ target: "metaMask", shimDisconnect: true }),
     injected({ shimDisconnect: true }),
