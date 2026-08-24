@@ -44,6 +44,30 @@ export async function GET(req: Request) {
       address && isAddress(address) ? canLaunch(address as Address) : Promise.resolve(null),
     ]);
 
+    // If the on-chain approval read returned only native ETH (e.g. the RPC was
+    // unreachable and every per-asset read threw), fall back to the registry so
+    // the paired-asset picker still shows the full, scrollable stock list. The
+    // deploy path validates the chosen asset on-chain regardless.
+    let assets = quoteAssets.map((q) => ({
+      asset: q.asset,
+      symbol: q.symbol,
+      name: q.name,
+      decimals: q.decimals,
+      graduationThreshold: q.graduationThreshold.toString(),
+    }));
+    if (assets.length <= 1) {
+      assets = [
+        { asset: "0x0000000000000000000000000000000000000000", symbol: "ETH", name: "Ether", decimals: 18, graduationThreshold: "0" },
+        ...candidates.map((c) => ({
+          asset: c.address,
+          symbol: c.symbol,
+          name: c.name,
+          decimals: 18,
+          graduationThreshold: "0",
+        })),
+      ];
+    }
+
     return NextResponse.json({
       launchFee: fee.toString(),
       canLaunch: gate,
@@ -55,16 +79,26 @@ export async function GET(req: Request) {
         poolFee: c.poolFee,
         tickSpacing: c.tickSpacing,
       })),
-      quoteAssets: quoteAssets.map((q) => ({
-        asset: q.asset,
-        symbol: q.symbol,
-        name: q.name,
-        decimals: q.decimals,
-        graduationThreshold: q.graduationThreshold.toString(),
-      })),
+      quoteAssets: assets,
     });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Failed to read v2 launch options.";
-    return NextResponse.json({ error: message }, { status: 502 });
+  } catch {
+    // Chain unreachable: still return the registry stock list (with native ETH)
+    // so the paired-asset picker is populated. Configs come from chain only, so
+    // they're empty here; the deploy path re-reads and validates on-chain.
+    return NextResponse.json({
+      launchFee: "0",
+      canLaunch: null,
+      configs: [],
+      quoteAssets: [
+        { asset: "0x0000000000000000000000000000000000000000", symbol: "ETH", name: "Ether", decimals: 18, graduationThreshold: "0" },
+        ...candidates.map((c) => ({
+          asset: c.address,
+          symbol: c.symbol,
+          name: c.name,
+          decimals: 18,
+          graduationThreshold: "0",
+        })),
+      ],
+    });
   }
 }

@@ -333,17 +333,18 @@ export function LaunchStudio() {
 
             {version === "v2" && (
               <div className="mt-4 space-y-4 rounded-xl border border-ink-line bg-white/60 p-4">
-                {!isConnected && (
-                  <p className="text-xs text-zinc-500">Connect your wallet to load v2 options from chain.</p>
+                {v2loading && !v2opts && (
+                  <p className="text-xs text-zinc-500">Loading options from the factory…</p>
                 )}
-                {v2loading && <p className="text-xs text-zinc-500">Loading options from the factory…</p>}
 
                 {v2opts && (
                   <>
-                    <p className="text-xs text-zinc-600">
-                      Launch fee:{" "}
-                      <span className="font-mono text-zinc-900">{formatEther(BigInt(v2opts.launchFee))} ETH</span>
-                    </p>
+                    {Number(v2opts.launchFee) > 0 && (
+                      <p className="text-xs text-zinc-600">
+                        Launch fee:{" "}
+                        <span className="font-mono text-zinc-900">{formatEther(BigInt(v2opts.launchFee))} ETH</span>
+                      </p>
+                    )}
 
                     {v2opts.configs.length > 0 && (
                       <div>
