@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAccount, usePublicClient, useSwitchChain, useWriteContract } from "wagmi";
-import { parseEventLogs, type Abi } from "viem";
+import { BaseError, ContractFunctionRevertedError, parseEventLogs, type Abi } from "viem";
 import { getStrategy, type LaunchInput } from "@/lib/pons";
 import { v2TokenLaunchedEvent } from "@/lib/pons/abisV2";
 import { tokenLaunchedEvent } from "@/lib/pons/abis";
@@ -60,6 +60,21 @@ export function DeployButton({ input, disabled }: { input: LaunchInput; disabled
     }
   }
 
+  // Pull the most specific revert reason out of a viem error (custom error
+  // name, revert string, or short message) so the user sees the real cause.
+  function revertReason(err: unknown): string {
+    if (err instanceof BaseError) {
+      const revert = err.walk((e) => e instanceof ContractFunctionRevertedError);
+      if (revert instanceof ContractFunctionRevertedError) {
+        const name = revert.data?.errorName;
+        if (name) return `${name}${revert.reason ? ` — ${revert.reason}` : ""}`;
+        if (revert.reason) return revert.reason;
+      }
+      return err.shortMessage || err.message;
+    }
+    return err instanceof Error ? err.message.split("\n")[0] : "unknown error";
+  }
+
   async function deploy() {
     setError(null);
     setWarnings([]);
@@ -78,6 +93,24 @@ export function DeployButton({ input, disabled }: { input: LaunchInput; disabled
       setStatus("preparing");
       const plan = await strategy.prepareLaunch(input, address);
       setWarnings(plan.warnings);
+
+      // Pre-flight: simulate against the chain to surface the EXACT revert
+      // reason (no gas spent) instead of a mystery failure. If this passes, the
+      // real transaction will go through.
+      if (publicClient) {
+        try {
+          await publicClient.simulateContract({
+            account: address,
+            address: plan.address,
+            abi: plan.abi as Abi,
+            functionName: plan.functionName,
+            args: plan.args as unknown[],
+            value: plan.value,
+          });
+        } catch (simErr) {
+          throw new Error("This launch would revert on-chain. Reason: " + revertReason(simErr));
+        }
+      }
 
       setStatus("signing");
       const hash = await writeContractAsync({
