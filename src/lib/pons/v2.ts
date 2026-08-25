@@ -1,7 +1,7 @@
 import { parseEther, toHex, zeroAddress, type Address } from "viem";
 import { v2FactoryAbi, v2LaunchAndBuyAbi } from "./abisV2";
 import { PONS_V2, REGISTRY, V2_GRADUATION_THRESHOLD_ETH } from "./registry";
-import { canLaunch, launchFee, previewLaunchEconomics } from "./readerV2";
+import { launchFee, previewLaunchEconomics } from "./readerV2";
 import type { LaunchStrategy } from "./strategy";
 import { V2_QUOTE_ASSETS, type LaunchInput, type LaunchPlan, type VersionInfo } from "./types";
 
@@ -38,18 +38,9 @@ export class PonsV2Adapter implements LaunchStrategy {
 
     const warnings: string[] = [];
 
-    // Launch gate: v2 public launches may be whitelist-gated. We do NOT hard
-    // block on it here - a stale or failed canLaunch() read must not stop a
-    // wallet that is actually allowed. The chain is the final arbiter (an
-    // unauthorized launch reverts on-chain with the real reason). We only
-    // surface a clear warning when the read explicitly says it's closed.
-    const allowed = await canLaunch(account).catch(() => null);
-    if (allowed === false) {
-      warnings.push(
-        "canLaunch() returned false for your wallet: v2 launches may be whitelist-only right now. " +
-          "If your wallet isn't allowed, this transaction will revert (no funds lost beyond gas)."
-      );
-    }
+    // No whitelist gate: we never pre-check canLaunch() — the deploy is always
+    // attempted and the chain is the final arbiter. (Requested: launches must
+    // not be blocked by an app-side whitelist check.)
 
     // Pin the economics we were quoted + read the live launch fee.
     const [expectedEconomics, fee] = await Promise.all([

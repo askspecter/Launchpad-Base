@@ -59,6 +59,7 @@ export function CurveTradeWidget({
     abi: erc20Abi,
     functionName: "balanceOf",
     args: address ? [address] : undefined,
+    chainId: robinhoodChain.id,
     query: { enabled: !!address && !isNative },
   });
   const { data: tokenBalRaw, refetch: refetchToken } = useReadContract({
@@ -66,6 +67,7 @@ export function CurveTradeWidget({
     abi: erc20Abi,
     functionName: "balanceOf",
     args: address ? [address] : undefined,
+    chainId: robinhoodChain.id,
     query: { enabled: !!address },
   });
 

@@ -25,51 +25,65 @@ export function PriceChart({ pool, isToken0 }: { pool: string; isToken0: boolean
   return (
     <section className="card p-5">
       <h2 className="text-sm font-medium text-zinc-700">Price</h2>
-      {points === null && <p className="mt-3 text-xs text-zinc-500">Loading chart…</p>}
-      {points !== null && points.length < 2 && (
-        <p className="mt-3 text-xs text-zinc-500">Not enough trades yet to draw a chart.</p>
+      {points === null ? (
+        <div className="mt-3 h-44 animate-pulse rounded-xl bg-black/[0.04]" />
+      ) : (
+        <Chart points={points} />
       )}
-      {points !== null && points.length >= 2 && <Chart points={points} />}
     </section>
   );
 }
 
 function Chart({ points }: { points: Point[] }) {
-  const useUsd = points.every((p) => p.priceUsd !== null);
+  const useUsd = points.length > 0 && points.every((p) => p.priceUsd !== null);
   const vals = points.map((p) => (useUsd ? (p.priceUsd as number) : p.priceWeth));
-  const min = Math.min(...vals);
-  const max = Math.max(...vals);
-  const range = max - min || 1;
   const W = 600;
-  const H = 160;
-  const pad = 6;
+  const H = 176;
+  const pad = 10;
+  const min = vals.length ? Math.min(...vals) : 0;
+  const max = vals.length ? Math.max(...vals) : 1;
+  const range = max - min || 1;
+  const flat = vals.length < 2;
 
-  const d = vals
-    .map((v, i) => {
-      const x = pad + (i / (vals.length - 1)) * (W - pad * 2);
-      const y = pad + (1 - (v - min) / range) * (H - pad * 2);
-      return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join(" ");
+  const pointFor = (v: number, i: number, n: number) => {
+    const x = pad + (n <= 1 ? 0 : (i / (n - 1)) * (W - pad * 2));
+    const y = flat ? H * 0.62 : pad + (1 - (v - min) / range) * (H - pad * 2);
+    return [x, y] as const;
+  };
+  const drawn = flat ? [pointFor(0, 0, 2), pointFor(0, 1, 2)] : vals.map((v, i) => pointFor(v, i, vals.length));
+  const line = drawn.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  const area = `${line} L${(W - pad).toFixed(1)},${H} L${pad},${H} Z`;
 
-  const first = vals[0];
-  const last = vals[vals.length - 1];
+  const last = vals.length ? vals[vals.length - 1] : 0;
+  const first = vals.length ? vals[0] : 0;
   const change = first > 0 ? ((last - first) / first) * 100 : 0;
+  const up = change >= 0;
 
   return (
     <div>
       <div className="mt-1 flex items-baseline gap-3">
-        <span className="text-2xl font-black tracking-tight">
+        <span className="text-2xl font-black tracking-tight text-zinc-900">
           {useUsd ? `$${fmt(last)}` : `${fmt(last)} WETH`}
         </span>
-        <span className="text-sm font-semibold">
-          {change >= 0 ? "▲" : "▼"} {Math.abs(change).toFixed(1)}%
-        </span>
+        {!flat && (
+          <span className={`text-sm font-semibold ${up ? "text-emerald-600" : "text-red-600"}`}>
+            {up ? "▲" : "▼"} {Math.abs(change).toFixed(1)}%
+          </span>
+        )}
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="mt-3 w-full" preserveAspectRatio="none">
-        <path d={d} fill="none" stroke="#000" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+      <svg viewBox={`0 0 ${W} ${H}`} className="mt-3 h-44 w-full" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="pxfill1" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#ec0e7b" stopOpacity="0.18" />
+            <stop offset="1" stopColor="#ec0e7b" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {!flat && <path d={area} fill="url(#pxfill1)" stroke="none" />}
+        <path d={line} fill="none" stroke="#ec0e7b" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
       </svg>
-      <p className="mt-1 text-[10px] text-zinc-500">{points.length} swaps · from on-chain events</p>
+      <p className="mt-1 text-[10px] text-zinc-500">
+        {flat ? "Awaiting first trades — line updates as the pool trades." : `${points.length} swaps · from on-chain events`}
+      </p>
     </div>
   );
 }
