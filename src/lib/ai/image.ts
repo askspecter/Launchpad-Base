@@ -18,20 +18,22 @@ export function buildImagePrompt(style: ImageStyle, ticker: string, description:
   const subject = description?.trim() || `a crypto token called $${ticker}`;
   if (style === "photo") {
     return (
-      `Photorealistic, cinematic promotional key art for a crypto token "$${ticker}". ` +
-      `${subject}. Dramatic studio lighting, rich depth of field, hyper-detailed, 4k, ` +
-      `vibrant magenta-pink accent lighting, premium and bold. No text, no watermark, no logo.`
+      `Photorealistic, cinematic promotional key art. Subject: ${subject}. ` +
+      `Dramatic studio lighting, rich depth of field, hyper-detailed, 4k, ` +
+      `vibrant accent lighting, premium and bold. No text, no watermark, no logo.`
     );
   }
+  // Icon: a clean, modern, simple logo/mascot that MATCHES the description.
   return (
-    `A professional, iconic logo mark for a crypto token "$${ticker}". ${subject}. ` +
-    `Design it as a single bold central emblem or a cute glossy mascot character — ` +
-    `think top-tier memecoin brand identity or a polished app icon. ` +
-    `Vector illustration, thick clean outlines, smooth cel shading, rich gradients, ` +
-    `subtle rim light and gloss, vibrant saturated colors with a magenta-pink accent, ` +
-    `strong silhouette, centered composition, generous padding, simple flat or soft ` +
-    `radial background. Crisp, balanced, instantly recognizable at small sizes. ` +
-    `No text, no letters, no words, no numbers, no watermark, no signature, no border frame.`
+    `Design a clean, modern, minimal logo for a crypto token. ` +
+    `Subject (make the logo clearly about this): ${subject}. ` +
+    `Style: a single centered icon — either a cute glossy mascot character or a bold ` +
+    `symbolic emblem, whichever best fits the subject. Flat vector illustration, ` +
+    `thick clean outlines, smooth simple shapes, tasteful gradients, soft rim light, ` +
+    `vibrant but balanced colors, strong readable silhouette, lots of padding, ` +
+    `plain solid or soft radial background, sticker/app-icon look. ` +
+    `Professional brand-quality, simple and tidy, instantly recognizable at small sizes. ` +
+    `No text, no letters, no words, no numbers, no watermark, no signature, no frame, no border.`
   );
 }
 
@@ -42,7 +44,10 @@ export async function generateTokenImage(
   style: ImageStyle = "icon"
 ): Promise<string> {
   const prompt = buildImagePrompt(style, ticker, description);
-  const size = process.env.IMAGE_SIZE || (style === "photo" ? "1024x1024" : "512x512");
+  // 1024x1024 is the one size supported by every current model (gpt-image-1,
+  // dall-e-3). The old 512x512 was rejected by gpt-image-1 and forced the SVG
+  // fallback every time.
+  const size = process.env.IMAGE_SIZE || "1024x1024";
 
   // 1) Bankr LLM Gateway (preferred — one key for text + image + more).
   const bankrKey = process.env.BANKR_API_KEY;
@@ -83,8 +88,10 @@ async function callImages(
         "x-api-key": key,
         authorization: `Bearer ${key}`,
       },
-      body: JSON.stringify({ model, prompt, size, n: 1, response_format: "b64_json" }),
-      signal: AbortSignal.timeout(45000),
+      // No response_format: gpt-image-1 rejects it (and always returns b64_json);
+      // dall-e-3 returns a url. We parse both shapes below.
+      body: JSON.stringify({ model, prompt, size, n: 1 }),
+      signal: AbortSignal.timeout(60000),
     });
     if (!res.ok) return null;
     const data = (await res.json()) as {
