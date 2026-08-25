@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import "@rainbow-me/rainbowkit/styles.css"; // REQUIRED, before globals — styles the connect modal
 import "./globals.css";
 import { Providers } from "./providers";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -26,16 +27,32 @@ export const viewport: Viewport = {
   themeColor: "#fff3fa",
 };
 
-// Render at request time, not static export. This skips Next's static prerender
-// step entirely, which is where wagmi/RainbowKit throws "reading 'uid'" — and
-// makes the build immune to stale Vercel build caches. (viem is also deduped via
-// package.json overrides so the runtime never hits that bug either.)
+// Render at request time, not static export. RainbowKit's config throws
+// "reading 'uid'" during Next's static prerender step — and Vercel restores a
+// build cache that can reintroduce old chunks — so skip prerender entirely.
+// This is a build/server-render concern only; the mobile crash was stale client
+// storage, handled by the reset script below.
 export const dynamic = "force-dynamic";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
+        {/*
+          One-time cleanup of stale wallet state. Earlier broken deploys wrote
+          wagmi / WalletConnect / RainbowKit data to localStorage in shapes that
+          the current setup can't rehydrate — on real mobile Safari that threw in
+          the providers and white-screened the whole app. This runs before React
+          hydrates and, once per version, drops any old wallet keys so RainbowKit
+          always starts clean. (A fresh browser was never affected, which is why
+          it only reproduced on phones that had visited before.)
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var V='pork-wallet-reset-1';if(localStorage.getItem('pork.walletReset')===V)return;var kill=/^(wagmi|wc@2|walletconnect|WALLETCONNECT|rk-|@rainbow|pork\\.wagmi|W3M|WCM|@w3m|@appkit|reown|@reown|CBWSDK|-walletlink)/i;Object.keys(localStorage).forEach(function(k){if(kill.test(k))localStorage.removeItem(k)});localStorage.setItem('pork.walletReset',V)}catch(e){}})();",
+          }}
+        />
         {/*
           Fonts are loaded at runtime by the browser (not fetched at build),
           so a build never depends on reaching Google Fonts. The CSS variables

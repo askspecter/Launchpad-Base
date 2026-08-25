@@ -9,6 +9,7 @@ import { DeployButton } from "./DeployButton";
 import { allVersionInfo, type LaunchInput, type PonsVersion, type QuoteAsset } from "@/lib/pons";
 import type { LaunchPackage } from "@/lib/ai/schema";
 import { uploadLogo } from "@/lib/upload";
+import { robinhoodChain } from "@/lib/chain";
 
 interface GenerateResponse {
   package: LaunchPackage;
@@ -38,7 +39,13 @@ interface V2Options {
 export function LaunchStudio() {
   const versions = useMemo(() => allVersionInfo(), []);
   const { address, isConnected } = useAccount();
-  const { data: balance } = useBalance({ address });
+  // Read the wallet's native balance on Robinhood Chain explicitly, so the
+  // deploy step shows the real balance regardless of the wallet's active chain.
+  const { data: balance } = useBalance({
+    address,
+    chainId: robinhoodChain.id,
+    query: { enabled: Boolean(address) && isConnected },
+  });
 
   const [idea, setIdea] = useState("");
   const [loading, setLoading] = useState(false);
@@ -324,7 +331,6 @@ export function LaunchStudio() {
 
           {/* Step 3 — model */}
           <Step n="03" title="Choose a launch model" className="animate-fade-up">
-            <p className="mb-3 text-xs text-zinc-500">{result.package.recommendation.rationale}</p>
             <VersionSelector
               versions={versions}
               selected={version}
@@ -334,17 +340,18 @@ export function LaunchStudio() {
 
             {version === "v2" && (
               <div className="mt-4 space-y-4 rounded-xl border border-ink-line bg-white/60 p-4">
-                {!isConnected && (
-                  <p className="text-xs text-zinc-500">Connect your wallet to load v2 options from chain.</p>
+                {v2loading && !v2opts && (
+                  <p className="text-xs text-zinc-500">Loading options from the factory…</p>
                 )}
-                {v2loading && <p className="text-xs text-zinc-500">Loading options from the factory…</p>}
 
                 {v2opts && (
                   <>
-                    <p className="text-xs text-zinc-600">
-                      Launch fee:{" "}
-                      <span className="font-mono text-zinc-900">{formatEther(BigInt(v2opts.launchFee))} ETH</span>
-                    </p>
+                    {Number(v2opts.launchFee) > 0 && (
+                      <p className="text-xs text-zinc-600">
+                        Launch fee:{" "}
+                        <span className="font-mono text-zinc-900">{formatEther(BigInt(v2opts.launchFee))} ETH</span>
+                      </p>
+                    )}
 
                     {v2opts.configs.length > 0 && (
                       <div>
@@ -376,10 +383,6 @@ export function LaunchStudio() {
                           onChange={(a) => setPairToken(a as `0x${string}`)}
                         />
                       </div>
-                      <p className="mt-2 text-[11px] text-zinc-500">
-                        The token graduates into a pool paired with your chosen asset. Only assets the
-                        factory approves on-chain are listed.
-                      </p>
                     </div>
 
                     <label className="flex cursor-pointer items-center gap-2 text-sm text-zinc-700">
@@ -400,7 +403,7 @@ export function LaunchStudio() {
           {/* Step 4 — deploy */}
           <Step n="04" title="Deploy to Pons" className="animate-fade-up">
             {isConnected && (
-              <div className="mb-3 flex items-center justify-between rounded-xl border border-ink-line bg-black/30 px-3 py-2 text-xs">
+              <div className="mb-3 flex items-center justify-between rounded-xl border border-ink-line bg-white/60 px-3 py-2 text-xs">
                 <span className="text-zinc-500">Wallet balance</span>
                 <span className="font-mono text-zinc-900">
                   {balance ? `${Number(balance.formatted).toFixed(4)} ${balance.symbol}` : "…"}

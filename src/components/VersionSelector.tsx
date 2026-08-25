@@ -34,12 +34,10 @@ export function VersionSelector({
               </span>
             </div>
             <p className="mt-2 text-sm text-zinc-700">{info.liquidity}</p>
-            <p className="mt-2 text-xs text-zinc-500">{info.note}</p>
             <div className="mt-3 flex flex-wrap gap-1.5">
-              {info.quoteAssets.map((q) => (
+              {info.quoteAssets.slice(0, 5).map((q) => (
                 <span key={q} className="chip">{q}</span>
               ))}
-              {info.graduation && <span className="chip">graduate {info.graduation}</span>}
             </div>
           </button>
         );

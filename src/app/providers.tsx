@@ -2,56 +2,69 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
-import { WagmiProvider, createConfig, http, createStorage, noopStorage } from "wagmi";
-import { injected } from "wagmi/connectors";
+import { WagmiProvider, http } from "wagmi";
+import { RainbowKitProvider, getDefaultConfig, lightTheme } from "@rainbow-me/rainbowkit";
+import {
+  injectedWallet,
+  metaMaskWallet,
+  rainbowWallet,
+  walletConnectWallet,
+} from "@rainbow-me/rainbowkit/wallets";
 import { robinhoodChain } from "@/lib/chain";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Wallet connect — deliberately RainbowKit-FREE.
+// Wallet connect — the exact working RainbowKit + wagmi v2 setup from Verbo
+// (see WALLET_CONNECT.md). RainbowKit's modal gives MetaMask / Browser Wallet /
+// Rainbow / WalletConnect. WalletConnect negotiates an EVM-only (eip155) session,
+// so multi-chain wallets (Bitget/OKX) connect on Robinhood — never Solana.
 //
-// RainbowKit (and the WalletConnect / @reown-appkit stack it pulls in) crashed
-// the whole site on mobile Safari with "undefined is not an object (evaluating
-// 'e.uid')" every time it was mounted. The only configuration that stayed up on
-// that device is a bare wagmi setup, so wallet connect is built directly on
-// wagmi's lightweight `injected` connector instead:
-//
-//  • `injected` targets window.ethereum directly (MetaMask & other extensions,
-//    and wallet in-app browsers). No WalletConnect, no @reown-appkit, no
-//    MetaMask SDK — none of the heavy, Safari-fragile code that was crashing.
-//  • MIPD (EIP-6963 auto-discovery) is OFF — it dynamically builds connectors on
-//    mount and was a suspect for the undefined-connector/uid crash.
-//  • Fresh, versioned storage key so no stale connector state is rehydrated.
-//
-// The Connect button (components/WalletButton.tsx) drives this via wagmi hooks.
-// A richer modal (e.g. RainbowKit or WalletConnect QR for mobile) can be layered
-// back on later once it's verified stable on mobile Safari.
-// ─────────────────────────────────────────────────────────────────────────────
-const wagmiConfig = createConfig({
+// Stability depends on TWO things, both in place:
+//   1. next.config.js webpack aliases stub the Coinbase/Base account SDKs that
+//      wagmi's connector barrel eagerly imports.
+//   2. NO viem `overrides` in package.json — WalletConnect keeps its own nested
+//      viem (2.23.2). Forcing a single viem broke WalletConnect and crashed the
+//      app; matching Verbo's tree (no override) is what keeps it up.
+// And "@rainbow-me/rainbowkit/styles.css" is imported in layout.tsx.
+const wagmiConfig = getDefaultConfig({
+  appName: "Pork",
+  projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID || "pork_missing_wc_project_id",
   chains: [robinhoodChain],
   transports: { [robinhoodChain.id]: http() },
-  // Two connectors so the user can pick an EVM wallet explicitly instead of the
-  // browser's default provider being used blindly:
-  //   [0] MetaMask, targeted directly (EVM, supports adding Robinhood Chain)
-  //   [1] any generic injected wallet (fallback)
-  // The app is Robinhood-Chain-only; the wallet button forces that network on
-  // connect.
-  connectors: [
-    injected({ target: "metaMask", shimDisconnect: true }),
-    injected({ shimDisconnect: true }),
-  ],
-  multiInjectedProviderDiscovery: false,
   ssr: true,
-  storage: createStorage({
-    key: "pork.wagmi.v3",
-    storage: typeof window !== "undefined" ? window.localStorage : noopStorage,
-  }),
+  wallets: [
+    {
+      groupName: "Popular",
+      wallets: [metaMaskWallet, injectedWallet, rainbowWallet, walletConnectWallet],
+    },
+  ],
+});
+
+// Light "Prism" theme to match Pork — pink accent.
+const porkTheme = lightTheme({
+  accentColor: "#ec0e7b",
+  accentColorForeground: "#ffffff",
+  borderRadius: "large",
+  overlayBlur: "small",
+  fontStack: "system",
 });
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
+  // reconnectOnMount={false} is the crash fix. getDefaultConfig defaults it to
+  // true, which auto-reconnects to the wallet stored from a previous visit. When
+  // that wallet is on an unsupported chain (e.g. Bitget left on Solana),
+  // usePublicClient() resolves to undefined and RainbowKit's transaction store
+  // throws "undefined is not an object (evaluating 'e.uid')", blanking the whole
+  // app on real mobile Safari — which is exactly why the bare-wagmi build (which
+  // had this off) never crashed and the RainbowKit build did. The user connects
+  // per session via the modal instead; RainbowKit stays mounted so the modal
+  // works normally.
   return (
-    <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <WagmiProvider config={wagmiConfig} reconnectOnMount={false}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider theme={porkTheme} modalSize="compact">
+          {children}
+        </RainbowKitProvider>
+      </QueryClientProvider>
     </WagmiProvider>
   );
 }
