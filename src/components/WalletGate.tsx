@@ -5,35 +5,47 @@ import Link from "next/link";
 import { useAccount, useDisconnect } from "wagmi";
 import { SITE } from "@/lib/site";
 
-const KEY = "pork:accepted:v1";
+// Acceptance is stored per wallet address (like Pons — "using pons with this
+// wallet"), so the gate reappears for each new wallet. v2 key: it intentionally
+// supersedes the old browser-wide v1 flag, so the gate shows again for everyone.
+const keyFor = (address: string) => `pork:accepted:v2:${address.toLowerCase()}`;
 
 /**
- * First-time connect gate (like Pons): the very first time a wallet connects,
+ * First-time connect gate (like Pons): the first time a given wallet connects,
  * the user must accept the Terms of Use and Privacy Policy before using the app.
- * The choice is remembered per browser, so it only appears once.
+ * Remembered per wallet address, so it only appears once per wallet.
  */
 export function WalletGate() {
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const { disconnect } = useDisconnect();
   const [mounted, setMounted] = useState(false);
   const [accepted, setAccepted] = useState(true);
   const [terms, setTerms] = useState(false);
   const [privacy, setPrivacy] = useState(false);
 
+  useEffect(() => setMounted(true), []);
+
+  // Re-check acceptance whenever the connected wallet changes, and reset the
+  // checkboxes so a newly connected wallet starts unticked.
   useEffect(() => {
-    setMounted(true);
+    if (!address) {
+      setAccepted(true);
+      return;
+    }
     try {
-      setAccepted(localStorage.getItem(KEY) === "1");
+      setAccepted(localStorage.getItem(keyFor(address)) === "1");
     } catch {
       setAccepted(false);
     }
-  }, []);
+    setTerms(false);
+    setPrivacy(false);
+  }, [address]);
 
-  if (!mounted || !isConnected || accepted) return null;
+  if (!mounted || !isConnected || !address || accepted) return null;
 
   function accept() {
     try {
-      localStorage.setItem(KEY, "1");
+      if (address) localStorage.setItem(keyFor(address), "1");
     } catch {}
     setAccepted(true);
   }
