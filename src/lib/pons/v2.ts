@@ -1,7 +1,7 @@
 import { parseEther, toHex, zeroAddress, type Address } from "viem";
 import { v2FactoryAbi, v2LaunchAndBuyAbi } from "./abisV2";
 import { PONS_V2, REGISTRY, V2_GRADUATION_THRESHOLD_ETH } from "./registry";
-import { launchFee, previewLaunchEconomics } from "./readerV2";
+import { canLaunch, launchFee, previewLaunchEconomics } from "./readerV2";
 import type { LaunchStrategy } from "./strategy";
 import { V2_QUOTE_ASSETS, type LaunchInput, type LaunchPlan, type VersionInfo } from "./types";
 
@@ -38,9 +38,19 @@ export class PonsV2Adapter implements LaunchStrategy {
 
     const warnings: string[] = [];
 
-    // No whitelist gate: we never pre-check canLaunch() — the deploy is always
-    // attempted and the chain is the final arbiter. (Requested: launches must
-    // not be blocked by an app-side whitelist check.)
+    // NON-BLOCKING whitelist check. Pons v2 launches are whitelist-gated
+    // ON-CHAIN: if the wallet isn't allowlisted, launchToken() reverts no matter
+    // how correct the calldata is — the frontend cannot bypass that. We never
+    // block here (deploy is always attempted, per request), but we surface a
+    // clear reason up front so a revert isn't a mystery.
+    const allowed = await canLaunch(account).catch(() => null);
+    if (allowed === false) {
+      warnings.push(
+        "This wallet is not on the Pons v2 whitelist, so the launch will revert on-chain " +
+          "(only gas is spent). Ask Pons to whitelist this address, use the wallet that has " +
+          "launched before, or launch with v1 (open, no whitelist)."
+      );
+    }
 
     // Pin the economics we were quoted + read the live launch fee.
     const [expectedEconomics, fee] = await Promise.all([
