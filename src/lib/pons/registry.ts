@@ -18,7 +18,8 @@ import type { PonsVersion } from "./types";
 
 /** Verified v1 deployment on Robinhood Chain (docs.ponsfamily.com). */
 export const PONS_V1 = {
-  activeFactory: "0xA5aAb3F0c6EeadF30Ef1D3Eb997108E976351feB" as `0x${string}`,
+  // Correct, verified v1 factory on Robinhood Chain (provided by the project owner).
+  activeFactory: "0xf4fc0cd27fc8ecf17e55ee4c3f7201897df3eb75" as `0x${string}`,
   activeFactoryStartBlock: 8991118n,
   activeLocker: "0x736D76699C26D0d966744cAe304C000d471f7F35" as `0x${string}`,
   legacyFactory: "0x0c37a24F5D23A486FA692d1500881d698B1F77a4" as `0x${string}`,

@@ -72,7 +72,10 @@ export class PonsV2Adapter implements LaunchStrategy {
         website: input.website?.trim() ?? "",
         farcaster: "",
       },
-      creatorFeeRecipient: zeroAddress, // defaults to the caller
+      // A successful on-chain launch (selector 0xa72101af) set this to the
+      // caller's address, not the zero address — some factory paths revert on
+      // zero. Match the proven-working calldata.
+      creatorFeeRecipient: account,
       creatorTaxBps: 0,
       buybackEnabled: input.buybackEnabled ?? true,
       expectedEconomics,
