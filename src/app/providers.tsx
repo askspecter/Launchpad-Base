@@ -1,8 +1,8 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState, type ReactNode } from "react";
-import { WagmiProvider, http } from "wagmi";
+import { useEffect, useState, type ReactNode } from "react";
+import { WagmiProvider, http, useReconnect } from "wagmi";
 import { RainbowKitProvider, getDefaultConfig, lightTheme } from "@rainbow-me/rainbowkit";
 import {
   injectedWallet,
@@ -62,9 +62,29 @@ export function Providers({ children }: { children: ReactNode }) {
     <WagmiProvider config={wagmiConfig} reconnectOnMount={false}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider theme={porkTheme} modalSize="compact">
+          <AutoReconnect />
           {children}
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );
+}
+
+/**
+ * Reconnect the last-used wallet AFTER mount (in an effect, once). This keeps
+ * the session across refreshes — so a wallet-browser user isn't asked to
+ * reconnect every time — while avoiding the SSR/hydration `e.uid` crash that
+ * `reconnectOnMount` caused (that fired during render, before the client was
+ * ready; this runs post-hydration when it's safe).
+ */
+function AutoReconnect() {
+  const { reconnect } = useReconnect();
+  useEffect(() => {
+    try {
+      reconnect();
+    } catch {
+      /* ignore */
+    }
+  }, [reconnect]);
+  return null;
 }
