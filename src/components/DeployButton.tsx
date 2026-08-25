@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useAccount, usePublicClient, useSwitchChain, useWriteContract } from "wagmi";
 import { BaseError, ContractFunctionRevertedError, parseEventLogs, type Abi } from "viem";
 import { getStrategy, type LaunchInput } from "@/lib/pons";
+import { toOnchainLogo } from "@/lib/upload";
 import { v2TokenLaunchedEvent } from "@/lib/pons/abisV2";
 import { tokenLaunchedEvent } from "@/lib/pons/abis";
 import { robinhoodChain, explorerTx } from "@/lib/chain";
@@ -91,7 +92,16 @@ export function DeployButton({ input, disabled }: { input: LaunchInput; disabled
         }
       }
       setStatus("preparing");
-      const plan = await strategy.prepareLaunch(input, address);
+      // On-chain metadata must be short — a data-URI logo (e.g. AI-generated)
+      // makes the factory revert with MetadataTooLong(). Replace it with a short
+      // stored URL, and keep the description within a safe length.
+      const onchainLogo = await toOnchainLogo(input.imageUri);
+      const safeInput: LaunchInput = {
+        ...input,
+        imageUri: onchainLogo,
+        description: (input.description ?? "").slice(0, 500),
+      };
+      const plan = await strategy.prepareLaunch(safeInput, address);
       setWarnings(plan.warnings);
 
       // Pre-flight: simulate against the chain to surface the EXACT revert

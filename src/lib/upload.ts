@@ -60,11 +60,8 @@ async function toDownscaledDataUrl(file: File): Promise<string> {
   return smallest || (await Promise.resolve(drawAt(img, 256).toDataURL("image/jpeg", 0.4)));
 }
 
-/** Upload a file and return an absolute URL to the stored image. */
-export async function uploadLogo(file: File): Promise<string> {
-  if (!file.type.startsWith("image/")) throw new Error("Please choose an image file.");
-  const dataUrl = await toDownscaledDataUrl(file);
-
+/** Upload a data-URL string to storage and return an absolute short URL. */
+export async function uploadDataUrl(dataUrl: string): Promise<string> {
   const res = await fetch("/api/upload", {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -73,4 +70,32 @@ export async function uploadLogo(file: File): Promise<string> {
   const json = await res.json();
   if (!res.ok) throw new Error(json.error ?? "Upload failed.");
   return `${window.location.origin}${json.path}`;
+}
+
+/** Upload a file and return an absolute URL to the stored image. */
+export async function uploadLogo(file: File): Promise<string> {
+  if (!file.type.startsWith("image/")) throw new Error("Please choose an image file.");
+  const dataUrl = await toDownscaledDataUrl(file);
+  return uploadDataUrl(dataUrl);
+}
+
+/**
+ * On-chain token metadata (logo) must be a SHORT reference — a data: URI or an
+ * over-long string makes the launch revert with MetadataTooLong(). If the given
+ * logo is a data URI or too long, upload it and return a short absolute URL;
+ * otherwise return it unchanged. Never throws — falls back to a safe empty
+ * string if it can't be shortened (a launch with no logo still succeeds).
+ */
+const MAX_ONCHAIN_LOGO = 200; // chars — well under the contract's metadata cap
+export async function toOnchainLogo(logo: string | undefined | null): Promise<string> {
+  const v = (logo ?? "").trim();
+  if (!v) return "";
+  const isData = v.startsWith("data:");
+  if (!isData && v.length <= MAX_ONCHAIN_LOGO) return v; // already a short URL/ipfs
+  try {
+    const short = await uploadDataUrl(v);
+    return short.length <= MAX_ONCHAIN_LOGO ? short : "";
+  } catch {
+    return ""; // storage unavailable — launch without an on-chain logo rather than revert
+  }
 }
