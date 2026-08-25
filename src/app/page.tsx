@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { SITE } from "@/lib/site";
 import { AssetLogo } from "@/components/AssetLogo";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { isVerified } from "@/lib/verified";
 
 const RWA = ["ETH", "USDG", "NVDA", "AAPL", "TSLA", "HOOD", "COIN", "META", "AMZN", "MSFT", "GOOGL", "SPY"];
 
@@ -167,7 +169,10 @@ export default function HomePage() {
                   <span className="chip absolute left-2 top-2 bg-white/80">{it.version}</span>
                 </div>
                 <div className="p-3">
-                  <p className="truncate font-display font-bold text-zinc-900">{it.name}</p>
+                  <p className="flex items-center gap-1 truncate font-display font-bold text-zinc-900">
+                    <span className="truncate">{it.name}</span>
+                    {isVerified(it.token) && <VerifiedBadge className="text-base" />}
+                  </p>
                   <div className="mt-0.5 flex items-center justify-between">
                     <span className="font-mono text-xs text-pink">${it.symbol}</span>
                     <span className="text-xs text-zinc-500">{timeAgo(it.createdAt)}</span>

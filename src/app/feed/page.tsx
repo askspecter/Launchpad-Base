@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { explorerTx } from "@/lib/chain";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { isVerified } from "@/lib/verified";
 
 interface LaunchRecord {
   token: string;
@@ -75,7 +77,10 @@ export default function FeedPage() {
                   className="h-12 w-12 rounded-xl border border-ink-line object-cover"
                 />
                 <div className="min-w-0">
-                  <p className="truncate font-display font-bold text-zinc-900">{it.name}</p>
+                  <p className="flex items-center gap-1 truncate font-display font-bold text-zinc-900">
+                    <span className="truncate">{it.name}</span>
+                    {isVerified(it.token) && <VerifiedBadge className="text-base" />}
+                  </p>
                   <p className="font-mono text-xs text-zinc-500">${it.symbol}</p>
                 </div>
                 <span className="chip ml-auto">{it.version}</span>
