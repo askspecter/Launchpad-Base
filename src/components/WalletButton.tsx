@@ -19,11 +19,31 @@ export function WalletButton({ variant = "solid" }: { variant?: "inline" | "soli
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const autoSwitched = useRef(false);
+  const autoConnected = useRef(false);
   useEffect(() => setMounted(true), []);
 
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
+
+  // Auto-connect inside a wallet's in-app browser (Bitget/MetaMask/etc.). We
+  // only connect when the wallet has ALREADY authorized this site
+  // (eth_accounts returns an address with no prompt), so a normal desktop
+  // visitor is never prompted unexpectedly. Runs once.
+  useEffect(() => {
+    if (!mounted || isConnected || autoConnected.current) return;
+    const eth = (typeof window !== "undefined" ? (window as { ethereum?: { request?: (a: { method: string }) => Promise<unknown> } }).ethereum : undefined);
+    if (!eth?.request) return;
+    autoConnected.current = true;
+    eth
+      .request({ method: "eth_accounts" })
+      .then((accts) => {
+        if (Array.isArray(accts) && accts.length > 0) {
+          connect({ connector: connectors[1] ?? connectors[0], chainId: robinhoodChain.id });
+        }
+      })
+      .catch(() => {});
+  }, [mounted, isConnected, connect, connectors]);
   const chainId = useChainId();
   const { switchChain, isPending: switching } = useSwitchChain();
   const { eth: feeEth, claim, busy: claiming, txHash: claimTx } = useCreatorFees();
