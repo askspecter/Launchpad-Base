@@ -49,8 +49,17 @@ const porkTheme = lightTheme({
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
+  // reconnectOnMount={false} is the crash fix. getDefaultConfig defaults it to
+  // true, which auto-reconnects to the wallet stored from a previous visit. When
+  // that wallet is on an unsupported chain (e.g. Bitget left on Solana),
+  // usePublicClient() resolves to undefined and RainbowKit's transaction store
+  // throws "undefined is not an object (evaluating 'e.uid')", blanking the whole
+  // app on real mobile Safari — which is exactly why the bare-wagmi build (which
+  // had this off) never crashed and the RainbowKit build did. The user connects
+  // per session via the modal instead; RainbowKit stays mounted so the modal
+  // works normally.
   return (
-    <WagmiProvider config={wagmiConfig}>
+    <WagmiProvider config={wagmiConfig} reconnectOnMount={false}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider theme={porkTheme} modalSize="compact">
           {children}
